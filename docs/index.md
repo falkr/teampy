@@ -14,11 +14,11 @@ The project is in an early stage, and not all features are in place yet.
 
 ## Installation
 
-    pip install teams
+    pip install teampy
 
 To upgrade, use:
 
-    pip install --upgrade teams
+    pip install --upgrade teampy
 
 ## Use Cases
 
@@ -30,6 +30,8 @@ and one for the teams.
 
 
 ### Creating RATs
+
+[Creating RATs](questions.html)
 
 
 ## API Documentation
