@@ -90,9 +90,9 @@ class Question:
         lines.append('{}\n'.format(self.question))
         lines.append('\n')
         if self.figure is not None:
-            lines.append('\\begin{{figure}}\\centering\n')
-            lines.append('\includegraphics{{{}}}\n'.format(figure))
-            lines.append('\caption{{}}\end{{figure}}\n')
+            lines.append('\\begin{figure}\\centering\n')
+            lines.append('\includegraphics{{{}}}\n'.format(self.figure))
+            lines.append('\caption{\end{figure}\n')
         lines.append('\\begin{enumerate}[label=\\textbf{{\\Alph*}},labelindent=0pt, labelsep=1.5em, parsep=0.2em]\n')
         for answer in self.get_rolled_answers(key):
             lines.append('\\item {}\n'.format(answer))
@@ -396,7 +396,12 @@ if __name__ == "__main__":
     #rat_create()
     rat_print()
 
-    #print('Current directory: {}'.format(os.getcwd()))
+    print('Current directory: {}'.format(os.getcwd()))
+
+    student_file = os.path.join(os.getcwd(), 'students.xlsx')
+    if not os.path.isfile(student_file):
+        print('Cannot find the file with name students.xlsx')
+
     #print('Current parent directory: {}'.format(dirname(os.getcwd())))
 
     #print(students.get_ids())
