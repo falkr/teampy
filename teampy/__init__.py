@@ -19,11 +19,11 @@ import random
 import numpy as np
 import pandas as pd
 
-from prompt_toolkit import prompt, print_formatted_text, HTML
-from prompt_toolkit.validation import Validator, ValidationError
-from prompt_toolkit.key_binding import KeyBindings
+#from prompt_toolkit import prompt, print_formatted_text, HTML
+#from prompt_toolkit.validation import Validator, ValidationError
+#from prompt_toolkit.key_binding import KeyBindings
 
-bindings = KeyBindings()
+#bindings = KeyBindings()
 
 __version__ = '0.1.0'
 """
@@ -45,17 +45,59 @@ class Students:
     def get_ids(self):
         return self.df.index.values
 
+    def get_student_ids_of_team(self, team_id):
+        return self.df[self.df['team']==team_id].index.values
+
+    def get_name(self, student_id):
+        student = self.df.loc[student_id]
+        return '{} {}'.format(student['firstname'], student['lastname'])
+
+
+class Teams:
+    def __init__(self, filename):
+        self.df = pd.read_excel(filename)
+        self.df = self.df.set_index('id')
+
+    def get_ids(self):
+        return self.df.index.values
+
 
 class Question:
-    def __init__(self, question_lines):
+    def __init__(self, question_lines, figure, number):
         self.question = ' '.join(question_lines)
         self.fake = []
+        self.figure = figure
+        self.number = number
 
     def set_true(self, line):
         self.true = line
 
     def add_fake(self, line):
         self.fake.append(line)
+
+    def get_rolled_answers(self, key):
+        answers = []
+        answers.append(self.true)
+        answers.extend(self.fake)
+        # now roll so that the true answer is at position of the key
+        array = np.asarray(answers)
+        hops = ord('a') - ord(key)
+        return np.roll(array, hops).tolist()
+
+    def write_latex(self, number, key):
+        lines = []
+        lines.append('\\paragraph{{Question {}:}}\n'.format(number))
+        lines.append('{}\n'.format(self.question))
+        lines.append('\n')
+        if self.figure is not None:
+            lines.append('\\begin{{figure}}\\centering\n')
+            lines.append('\includegraphics{{{}}}\n'.format(figure))
+            lines.append('\caption{{}}\end{{figure}}\n')
+        lines.append('\\begin{enumerate}[label=\\textbf{{\\Alph*}},labelindent=0pt, labelsep=1.5em, parsep=0.2em]\n')
+        for answer in self.get_rolled_answers(key):
+            lines.append('\\item {}\n'.format(answer))
+        lines.append('\\end{enumerate}\n')
+        return "".join(lines)
 
 
 class Questionaire:
@@ -80,6 +122,7 @@ class Questionaire:
         preamble = []
         question = []
         question_under_construction = None
+        figure = None
         for line in lines:
             linenumber = linenumber + 1
             line = line.strip()
@@ -108,13 +151,18 @@ class Questionaire:
             elif state == 'question':
                 if line.startswith('{'):
                     # finish the question, start answers
-                    question_under_construction = Question(question)
+                    number = len(self.questions) + 1
+                    question_under_construction = Question(question, figure, number)
+                    question = []
                     self.questions.append(question_under_construction)
+                    figure = None
                     if line.startswith('{1} true:'):
                         question_under_construction.set_true(remove_answer_prefix(line))
                         state = 'answers'
+                elif line.startswith('![]('):
+                    figure = line[4:-1]
                 else:
-                    self.questions.append(line)
+                    question.append(line)
             elif state == 'answers':
                 if line.startswith('{'):
                     question_under_construction.add_fake(remove_answer_prefix(line))
@@ -123,12 +171,71 @@ class Questionaire:
                     state = 'question'
 
     def read_questionaire(filename):
-            with open(filename, 'r') as file:
-                content = file.readlines()
-                questionaire = Questionaire()
-                questionaire._parse(content)
-                return questionaire
+        with open(filename, 'r') as file:
+            content = file.readlines()
+            questionaire = Questionaire()
+            questionaire._parse(content)
+            return questionaire
 
+    def write_latex(self, solution_document, teams, students):
+        page_break = '\\cleardoublepage\n\\newpage\n\n'
+        lines = []
+        # add latex preamble
+        abs_file_path = os.path.join(os.path.dirname(__file__), 'resources', 'latex_preamble.tex')
+        with open (abs_file_path, "r") as myfile:
+            preamble = myfile.read() #.replace('\n', '')
+            lines.append(preamble)
+
+        # all question in original order, with 'a' as correct answer
+        for q in self.questions:
+            print(type(q))
+            lines.append(q.write_latex(q.number, 'a'))
+        lines.append(page_break)
+
+        # list all solutions on the front page, for all teams
+        lines.append('\\subsubsection*{{Scratchcards for Teams}}\n')
+        for team_id in teams.get_ids():
+            solution = solution_document.solutions[team_id].to_string()
+            lines.append('Team {}: {}\\\\\n'.format(team_id, solution))
+
+        # list all solution for all students of each team
+        for team_id in teams.get_ids():
+            #lines.append('\\subsubsection*\{Team {}\}\n'.format(team_id))
+            lines.append('\\subsubsection*{{Team {}}}\n'.format(team_id))
+            for student_id in students.get_student_ids_of_team(team_id):
+                name = students.get_name(student_id)
+                solution = solution_document.solutions[student_id].to_string()
+                lines.append('{}:{}\\\\\n'.format(name, solution))
+        lines.append(page_break)
+
+        # TODO list solution for extra student
+
+        # questionaire for each team:
+        for team_id in teams.get_ids():
+            lines.append('\\teamprefix{{{}}}\n\n'.format(team_id))
+            solution = solution_document.solutions[team_id]
+            for question in self.questions:
+                key = solution.answers[question.number-1]
+                lines.append(question.write_latex(question.number, key))
+            lines.append(page_break)
+
+        for student_id in students.get_ids(): # TODO sort by table
+            name = students.get_name(student_id)
+            lines.append('\\individualprefix{{{}}}{{{}}}{{{}}}\n\n'.format(name, student_id, team_id))
+            solution = solution_document.solutions[student_id]
+            # sort question according to solution for this student
+            index = 0
+            for question_number in solution.questions:
+                index += 1
+                question = self.questions[question_number - 1]
+                key = solution.answers[index - 1]
+                lines.append(question.write_latex(index, key))
+            lines.append(page_break)
+
+        lines.append('\\end{document}')
+
+        # TODO questionaire for each extra sheet
+        return "".join(lines)
 
 class Solution:
 
@@ -164,7 +271,10 @@ class Solution:
         return Solution(id, questions, answers)
 
     def to_string(self):
-        return ' '.join(['{}{}'] * len(self.questions)).format(*tuple(self.questions), *tuple(self.answers))
+        s = ''
+        for q, a in zip(self.questions, self.answers):
+            s += str(q) + a + ' '
+        return s.strip()
 
     def roll(answers, key):
         """
@@ -188,7 +298,11 @@ class SolutionDocument:
     def __init__(self):
         self.solutions = {}
 
-    def create_solution_document(self, students, questionaire):
+    # add teams
+    def create_solution_document(self, teams, students, questionaire, scratchcard_solution):
+        for team_id in teams.get_ids():
+            solution = Solution.create_solution_from_string(scratchcard_solution, scratchcard_solution)
+            self.solutions[team_id] = solution
         for student_id in students.get_ids():
             solution = Solution.create_solution_from_questionaire(student_id, questionaire)
             self.solutions[student_id] = solution
@@ -216,32 +330,23 @@ def load_students():
     students = Students('../tests/data/students.xlsx')
     return students
 
-class NumberValidator(Validator):
-    def validate(self, document):
-        text = document.text
-
-        if text and not text.isdigit():
-            i = 0
-
-            # Get index of fist non numeric character.
-            # We want to move the cursor here.
-            for i, c in enumerate(text):
-                if not c.isdigit():
-                    break
-
-            raise ValidationError(message='This input contains non-numeric characters',
-                                  cursor_position=i)
-
-@bindings.add('escape')
-def _(event):
-    " Do something if 'a' has been pressed. "
-    print('escape')
+def load_teams():
+    # look for teams file
+    teams = Teams('../tests/data/teams.xlsx')
+    return teams
 
 def rat_create():
     """
     Create a template file for a RAT
     """
     print_formatted_text(HTML('<darkgray>Create a new template file for a RAT.</darkgray>'))
+
+    from prompt_toolkit.shortcuts import input_dialog
+
+    text = input_dialog(
+    title='Input dialog example',
+    text='Please type your name:')
+
     # create directory
     #number = int(prompt('Number of the RAT: ', validator=NumberValidator(), key_bindings=bindings))
     number = prompt('Number of the RAT: ', validator=NumberValidator(), key_bindings=bindings)
@@ -259,6 +364,7 @@ def rat_print():
     """
     # load the student file
     students = load_students()
+    teams = load_teams()
 
     # find out which RAT to print
     #current working directory
@@ -270,25 +376,28 @@ def rat_print():
             print(item)
     # read in Questionaire
     questionaire = Questionaire.read_questionaire('../tests/data/rat-01.md')
+    for q in questionaire.questions:
+        print(q)
 
     # create a solution file
     sd = SolutionDocument()
-    sd.create_solution_document(students, questionaire)
+    sd.create_solution_document(teams, students, questionaire, '1c 2b 3c 4c 5b 6a 7a 8d 9a 10b')
     sd.store('solution.xlsx')
 
-    sd_2 = SolutionDocument()
-    sd_2.load('solution.xlsx')
-    sd_2.printx()
+    latex = questionaire.write_latex(sd, teams, students)
+    with open("questionaire.tex", "w") as text_file:
+        text_file.write(latex)
+
 
 
 if __name__ == "__main__":
 
-    print_teams()
-    rat_create()
-    #rat_print()
+    #print_teams()
+    #rat_create()
+    rat_print()
 
-    print('Current directory: {}'.format(os.getcwd()))
-    print('Current parent directory: {}'.format(dirname(os.getcwd())))
+    #print('Current directory: {}'.format(os.getcwd()))
+    #print('Current parent directory: {}'.format(dirname(os.getcwd())))
 
     #print(students.get_ids())
 
