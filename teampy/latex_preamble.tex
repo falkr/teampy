@@ -1,0 +1,145 @@
+\documentclass[9pt, twoside, twocolumn]{extarticle}
+
+\usepackage[left=7cm, right=2 cm, top=2cm, bottom=2cm, landscape, a4paper]{geometry}
+\setlength{\columnsep}{1cm}
+
+\usepackage[parfill]{parskip}    % Activate to begin paragraphs with an empty line rather than an indent
+
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{epstopdf}
+
+\usepackage{framed}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhead{} % clear all header fields
+%\fancyhead[LO,LE]{\Large \thetitle}
+\fancyfoot{} % clear all footer fields
+\fancyfoot[RE,RO]{\thepage}
+%\fancyfoot[LO,LE]{Reactive Systems Engineering 2013}
+\renewcommand{\headrulewidth}{0pt}% 1pt
+\renewcommand{\footrulewidth}{0pt}% 1pt
+
+\newcommand{\tightlist}{}
+
+\renewcommand{\labelitemi}{--}
+\usepackage{enumerate}
+
+%\usepackage[pdftex]{changebar}
+
+\usepackage{amssymb}
+
+\usepackage{url}
+%\usepackage[hyphens]{url}
+%\usepackage[]{hyperref}
+\usepackage[breaklinks]{hyperref}
+\urlstyle{same}
+
+\usepackage{aeguill}
+
+\usepackage{multicol}
+\usepackage[usenames]{xcolor}
+\definecolor{gray}{rgb}{.3,.3,.3}
+
+\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+
+\usepackage{tabularx}
+\usepackage{booktabs}
+
+\usepackage{helvet}
+\usepackage{charter}
+\renewcommand{\sfdefault}{phv}
+
+\usepackage[absolute]{textpos}
+\setlength{\TPHorizModule}{40mm}
+\setlength{\TPVertModule}{10mm}
+\textblockorigin{20mm}{20mm} % start everything near the top-left corner
+
+
+\usepackage{enumitem}
+
+\LetLtxMacro{\OldIncludegraphics}{\includegraphics}
+\renewcommand{\includegraphics}[2][]{\OldIncludegraphics[width=\linewidth, #1]{#2}}
+\renewcommand{\caption}{}
+
+\newcommand{\teamprefix}[2]{% team number
+\begin{textblock}{3.5}(0,0)
+\begin{tabular}{ll}
+Team: & \huge\linespread{6} #1
+\end{tabular}
+
+\includegraphics[width=\textwidth]{figures/scratch.pdf}
+
+%\rule{14.4cm}{1.5pt}
+\end{textblock}
+\textcolor{white}{.}\\ %placeholder
+\vspace{10cm}
+}%
+
+\newcommand{\individualprefixtable}[4]{% name, name shortcode, team, table
+\begin{textblock}{3.5}(0,0)
+\fontfamily{phv}\selectfont
+\begin{tabular}{ll}
+Team: & \Large\linespread{6} \textbf{#3} \normalsize{(Table #4)}\\
+      & \\
+Name: & \Large\linespread{6} \textbf{#1} (#2)
+\end{tabular}
+
+\includegraphics[width=\textwidth]{figures/rat-box.pdf}
+%Instructions:
+%\begin{multicols}{2}
+%\begin{itemize}
+%\item Fill in your name and name code above.
+%\item Select \emph{extactly one} answer alternative.
+%\item Select the one that matches \emph{best}.
+%\item Only write within the answer box above.
+%%\item No helping material is allowed.
+%\item The checksum should show how often you have used any answer alternative.
+%\end{itemize}
+%\end{multicols}
+%\rule{14.4cm}{1.5pt}
+\end{textblock}
+\textcolor{white}{.}\\ %placeholder
+\vspace{6cm}
+}%
+
+\newcommand{\individualprefix}[3]{% name, name shortcode, team, table
+\begin{textblock}{3.5}(0,0)
+\fontfamily{phv}\selectfont
+\begin{tabular}{ll}
+Team: & \Large\linespread{6} \textbf{#3}\\
+      & \\
+Name: & \Large\linespread{6} \textbf{#1} (#2)
+\end{tabular}
+
+\includegraphics[width=\textwidth]{figures/rat-box.pdf}
+%Instructions:
+%\begin{multicols}{2}
+%\begin{itemize}
+%\item Fill in your name and name code above.
+%\item Select \emph{extactly one} answer alternative.
+%\item Select the one that matches \emph{best}.
+%\item Only write within the answer box above.
+%%\item No helping material is allowed.
+%\item The checksum should show how often you have used any answer alternative.
+%\end{itemize}
+%\end{multicols}
+%\rule{14.4cm}{1.5pt}
+\end{textblock}
+\textcolor{white}{.}\\ %placeholder
+\vspace{6cm}
+}%
+
+% pandoc creates figures that float away, so we override and set position to H.
+% Overwrite \begin{figure}[htbp] with \begin{figure}[H]
+\usepackage{float}
+\let\origfigure=\figure
+\let\endorigfigure=\endfigure
+\renewenvironment{figure}[1][]{%
+  \origfigure[H]
+}{%
+  \endorigfigure
+}
+
+\begin{document}

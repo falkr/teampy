@@ -183,7 +183,9 @@ class Questionaire:
         page_break = '\\cleardoublepage\n\\newpage\n\n'
         lines = []
         # add latex preamble
-        abs_file_path = os.path.join(os.path.dirname(__file__), 'resources', 'latex_preamble.tex')
+        # abs_file_path = os.path.join(os.path.dirname(__file__), 'resources', 'latex_preamble.tex')
+        print('x')
+        abs_file_path = os.path.join(os.path.dirname(__file__), 'latex_preamble.tex')
         with open (abs_file_path, "r") as myfile:
             preamble = myfile.read() #.replace('\n', '')
             lines.append(preamble)
@@ -342,92 +344,6 @@ def load_teams():
     # look for teams file
     teams = Teams('../tests/data/teams.xlsx')
     return teams
-
-def rat_create():
-    """
-    Create a template file for a RAT
-    """
-    print_formatted_text(HTML('<darkgray>Create a new template file for a RAT.</darkgray>'))
-
-    from prompt_toolkit.shortcuts import input_dialog
-
-    text = input_dialog(
-    title='Input dialog example',
-    text='Please type your name:')
-
-    # create directory
-    #number = int(prompt('Number of the RAT: ', validator=NumberValidator(), key_bindings=bindings))
-    number = prompt('Number of the RAT: ', validator=NumberValidator(), key_bindings=bindings)
-    title = prompt(' Title of the RAT: ')
-    rat_id = 'rat-' + str(number).zfill(2)
-    # create template file
-    directory = os.path.join(os.getcwd(), rat_id)
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-    file = os.path.join(directory, 'questions.md')
-
-def rat_check(file_input):
-    """
-    Read the RAT questionaire, check for consistency, print it as tex document,
-    but without solutions or fo specific students or teams.
-    """
-    content = file_input.readlines()
-    file_input.close()
-    questionaire = Questionaire()
-    code, message = questionaire._parse(content)
-    if code == 1: # warnig
-        print(Fore.YELLOW + message + Style.RESET_ALL)
-        return
-    elif code == 2: # error
-        print(Fore.RED + message + Style.RESET_ALL)
-        return
-
-    # does not detect 4 fake answers, or several true answers, improve parser
-    print('The RAT has {} questions.'.format(len(questionaire.questions)))
-    for question in questionaire.questions:
-        fake = len(question.fake)
-        if fake != 3:
-            print(Fore.RED + 'Question {} has only {} fake answers. Must be 3.'.format(question.number, fake) + Style.RESET_ALL)
-            return
-        if question.true is None:
-            print(Fore.RED + 'Question {} has no true answer. The first answer alternative must be the true one.'.format(question.number) + Style.RESET_ALL)
-            return
-    print(Fore.GREEN + 'OK' + Style.RESET_ALL)
-
-    print(questionaire.write_latex())
-
-
-def rat_print(rat):
-    """
-    Create a document with RATs for all students and all teams.
-    """
-    # load the student file
-    students = load_students()
-    teams = load_teams()
-
-    # find out which RAT to print
-    #current working directory
-    cwd = os.getcwd()
-    print(cwd)
-    from os.path import isfile, join
-    for item in os.listdir(cwd):
-        if isfile(join(cwd, item)):
-            print(item)
-    # read in Questionaire
-    questionaire = Questionaire.read_questionaire('../tests/data/rat-01.md')
-    for q in questionaire.questions:
-        print(q)
-
-    # create a solution file
-    sd = SolutionDocument()
-    sd.create_solution_document(teams, students, questionaire, '1c 2b 3c 4c 5b 6a 7a 8d 9a 10b')
-    sd.store('solution.xlsx')
-
-    latex = questionaire.write_latex(sd, teams, students)
-    with open("questionaire.tex", "w") as text_file:
-        text_file.write(latex)
-
-
 
 if __name__ == "__main__":
 

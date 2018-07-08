@@ -2,18 +2,23 @@ from distutils.core import setup
 setup(
   name='teampy',
   packages=['teampy'],
-  version='0.1.1',
+  version='0.1.6',
   description='Tools for Team-Based Learning',
+  install_requires=['pyyaml', 'colorama', 'click', 'numpy', 'pandas'],
+  package_data={
+        # If any package contains *.txt files, include them:
+        '': ['*.tex'],
+    },
+  include_package_data=True,
   author='Frank Alexander Kraemer',
   author_email='kraemer.frank@gmail.com',
-  license='GPL',
+  license='GPLv3',
   url='https://github.com/falkr/teampy',
   download_url='https://github.com/falkr/teampy/archive/0.2.tar.gz',
   keywords=['education'],
   classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Education',
-        'License :: OSI Approved :: GPL License',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
