@@ -19,6 +19,8 @@ import random
 import numpy as np
 import pandas as pd
 
+from colorama import init, Fore, Style
+
 #from prompt_toolkit import prompt, print_formatted_text, HTML
 #from prompt_toolkit.validation import Validator, ValidationError
 #from prompt_toolkit.key_binding import KeyBindings
@@ -106,7 +108,6 @@ class Questionaire:
         self.questions = []
 
     def _parse(self, lines):
-
         def remove_answer_prefix(line):
             if line.startswith('{1} true:'):
                 return line[len('{1} true:'):].strip()
@@ -132,12 +133,12 @@ class Questionaire:
                 if line.startswith('---'): # yaml preamble start
                     state = 'preamble'
                 else:
-                    print('Error in line {}: Quiz needs a Yaml preamble, starting with ---.'.format(linenumber))
+                    return 2, 'Error in line {}: The file needs a Yaml preamble, starting with ---.'.format(linenumber)
             elif state == 'preamble':
                 if line.startswith('---'): # yaml preamble end
                     preamble = yaml.load('\n'.join(preamble))
-                    if not preamble['title']:
-                        print('The file must contain a line with a title: attribute.')
+                    if 'title' not in preamble:
+                        return 2, 'The preamble at the beginning must contain a line with an attribute \'title\'.'
                         self.title = None
                     else:
                         self.title = preamble['title']
@@ -169,6 +170,7 @@ class Questionaire:
                 elif line.startswith('#'):
                     # create a new question
                     state = 'question'
+        return 0, None
 
     def read_questionaire(filename):
         with open(filename, 'r') as file:
@@ -177,7 +179,7 @@ class Questionaire:
             questionaire._parse(content)
             return questionaire
 
-    def write_latex(self, solution_document, teams, students):
+    def write_latex(self, solution_document=None, teams=None, students=None):
         page_break = '\\cleardoublepage\n\\newpage\n\n'
         lines = []
         # add latex preamble
@@ -190,6 +192,12 @@ class Questionaire:
         for q in self.questions:
             print(type(q))
             lines.append(q.write_latex(q.number, 'a'))
+
+        # only print the questionaire for checking it
+        if solution_document==None:
+            lines.append('\\end{document}')
+            return "".join(lines)
+
         lines.append(page_break)
 
         # list all solutions on the front page, for all teams
@@ -358,7 +366,38 @@ def rat_create():
         os.makedirs(directory)
     file = os.path.join(directory, 'questions.md')
 
-def rat_print():
+def rat_check(file_input):
+    """
+    Read the RAT questionaire, check for consistency, print it as tex document,
+    but without solutions or fo specific students or teams.
+    """
+    content = file_input.readlines()
+    file_input.close()
+    questionaire = Questionaire()
+    code, message = questionaire._parse(content)
+    if code == 1: # warnig
+        print(Fore.YELLOW + message + Style.RESET_ALL)
+        return
+    elif code == 2: # error
+        print(Fore.RED + message + Style.RESET_ALL)
+        return
+
+    # does not detect 4 fake answers, or several true answers, improve parser
+    print('The RAT has {} questions.'.format(len(questionaire.questions)))
+    for question in questionaire.questions:
+        fake = len(question.fake)
+        if fake != 3:
+            print(Fore.RED + 'Question {} has only {} fake answers. Must be 3.'.format(question.number, fake) + Style.RESET_ALL)
+            return
+        if question.true is None:
+            print(Fore.RED + 'Question {} has no true answer. The first answer alternative must be the true one.'.format(question.number) + Style.RESET_ALL)
+            return
+    print(Fore.GREEN + 'OK' + Style.RESET_ALL)
+
+    print(questionaire.write_latex())
+
+
+def rat_print(rat):
     """
     Create a document with RATs for all students and all teams.
     """

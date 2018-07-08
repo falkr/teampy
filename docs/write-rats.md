@@ -1,11 +1,10 @@
 ---
 ---
 
-# RAT Questions
+# Write RATs
 
-
-A RAT is written as a textfile with some few elements for marking questions and correct answers.
-Below is an example of a quiz with a question and four answers.
+You write a RAT as a text file with some few elements for marking questions and correct answers.
+Below is an example of a RAT showing a single question with four answers.
 
     ---
     title: "RAT 1: Fruits and Vegetables"
@@ -15,7 +14,7 @@ Below is an example of a quiz with a question and four answers.
 
     Which of the following is a fruit?
 
-    ![](figures/banana.pdf)
+    ![](figures/fruits.pdf)
 
     {1} true: A banana is a fruit.
     {2} fake: Salad is a fruit.
@@ -26,29 +25,29 @@ Below is an example of a quiz with a question and four answers.
 
     Another question...
 
+As you can see, **the correct answer is always the first one.**
+We will shuffle the answers once we print them.
+This also means that you need to formulate the answer alternatives so that they
+make sense independent of their sequence.
 
 * The file contains a preamble (between the two lines starting with `---`) that
 defines the title of the RAT, like here *Fruits and Vegetables*.
 * Each new question is introduced with a line that starts with a `#`.
 * The question can be several lines of text.
 * The answer alternatives are given with the prefix `{1} true: ` resp. `{n} fake: `.
-* It is important that there is only **one** true answer, and that it is declared as **first** one.
 * Within each RAT, all question must have the same number of answer alternatives.
 
 ## Figures
 
-A question can include a figure, using the code `![](figures/banana.pdf)`.
+A question can include a figure, using the code `![](figures/fruits.pdf)`.
 The image should be contained in a folder `figures`, and the types can be PDF, JPG or PNG.
 (With LaTeX creating the final document, PDF with vector graphics is often the best option.)
 
-##Current Constraints
+## Current Constraints
 
 * There must always be **four** answer alternatives.
 * Text is transformed into LaTeX as it is written, i.e., markdown or other letters are not escaped.
 * A question can have **at most one figure**.
-
-
-
 
 ## Filenames
 
@@ -68,3 +67,14 @@ The RAT files should be stored in their own folder, so that Teampy creates other
             - aa2.pdf
         - figures/
             - banana.pdf
+
+## Checking RATs
+
+At any time, you can use Teampy to check the RAT file and create LaTeX from it so you can see if all works.
+To do so, run the following command in the command line:
+
+    rat check questions.md
+
+We assume here that you are in the directory of the RAT, and that `questions.md` is the name of your RAT file.
+
+The `rat check` command does not require that your students file exists. The RAT is printed
