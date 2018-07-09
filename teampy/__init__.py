@@ -21,6 +21,10 @@ import pandas as pd
 
 from colorama import init, Fore, Style
 
+# colorama
+#init(convert=True) # only if trouble on windows
+init(autoreset=True)
+
 #from prompt_toolkit import prompt, print_formatted_text, HTML
 #from prompt_toolkit.validation import Validator, ValidationError
 #from prompt_toolkit.key_binding import KeyBindings
@@ -94,7 +98,7 @@ class Question:
         if self.figure is not None:
             lines.append('\\begin{figure}\\centering\n')
             lines.append('\includegraphics{{{}}}\n'.format(self.figure))
-            lines.append('\caption{\end{figure}\n')
+            lines.append('\caption{}\end{figure}\n')
         lines.append('\\begin{enumerate}[label=\\textbf{{\\Alph*}},labelindent=0pt, labelsep=1.5em, parsep=0.2em]\n')
         for answer in self.get_rolled_answers(key):
             lines.append('\\item {}\n'.format(answer))
@@ -184,7 +188,6 @@ class Questionaire:
         lines = []
         # add latex preamble
         # abs_file_path = os.path.join(os.path.dirname(__file__), 'resources', 'latex_preamble.tex')
-        print('x')
         abs_file_path = os.path.join(os.path.dirname(__file__), 'latex_preamble.tex')
         with open (abs_file_path, "r") as myfile:
             preamble = myfile.read() #.replace('\n', '')

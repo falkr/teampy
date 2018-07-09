@@ -1,7 +1,7 @@
 ---
 ---
 
-# Teams: Tools for Team-Based Learning
+# Teampy: Tools for Team-Based Learning
 
 This is a set of Python scripts to manage readiness assurance tests for
 team-based learning.

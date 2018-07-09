@@ -4,6 +4,7 @@ from teampy import Questionaire, SolutionDocument, Students, Teams, Solution
 from colorama import init, Fore, Style
 
 import click
+import shutil
 
 def print_teampy():
     print(' _                                   ')
@@ -12,6 +13,15 @@ def print_teampy():
     print('| ||  __/ (_| | | | | | | |_) | |_| |')
     print(' \__\___|\__,_|_| |_| |_| .__/ \__, |')
     print('                        |_|    |___/ ')
+
+def copy_figures(rat_directory):
+    # create the figures directory
+    figures = os.path.join(rat_directory, 'figures')
+    if not os.path.exists(figures):
+        os.makedirs(figures)
+    for filename in ['rat-box.pdf', 'scratch.pdf']:
+        file = os.path.join(os.path.dirname(__file__), filename)
+        shutil.copy(file, figures)
 
 def rat_create():
     """
@@ -69,7 +79,8 @@ def rat_check(file_input, file_path):
     # TODO check if file already exists
     with open(tex_file_path, "w") as file:
         file.write(questionaire.write_latex())
-    # TODO copy also ratbox figures
+    # copy also ratbox figures
+    copy_figures(os.path.dirname(file_path))
 
 
 def rat_print(rat):
