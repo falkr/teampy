@@ -189,7 +189,7 @@ class Questionaire:
         # add latex preamble
         # abs_file_path = os.path.join(os.path.dirname(__file__), 'resources', 'latex_preamble.tex')
         abs_file_path = os.path.join(os.path.dirname(__file__), 'latex_preamble.tex')
-        with open (abs_file_path, "r") as myfile:
+        with open (abs_file_path, "r", encoding='latin-1') as myfile:
             preamble = myfile.read() #.replace('\n', '')
             lines.append(preamble)
 

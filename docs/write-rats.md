@@ -68,6 +68,12 @@ The RAT files should be stored in their own folder, so that Teampy creates other
         - figures/
             - banana.pdf
 
+## Encoding
+
+When you store the RAT file, your editor will use an encoding for the characters.
+If you write in plain English, ASCII or UTF-8 will work fine, but if you want to use other characters,
+choose **ISO-Latin-1** or **ISO-Latin-9**.
+
 ## Checking RATs
 
 At any time, you can use Teampy to check the RAT file and create LaTeX from it so you can see if all works.
