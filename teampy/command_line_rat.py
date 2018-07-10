@@ -134,6 +134,7 @@ def new():
     Create templates for a new RAT.
     """
     click.echo('Create a new RAT.')
+    # store as ISO-Latin-1
 
 @rat.command()
 #@click.argument('file', type=click.File('r'))
@@ -154,7 +155,8 @@ def check(file):
     print(dir)
     print(isfile(j))
     print(type(j))
-    rat_check(click.open_file(file), abs)
+    # , encoding='latin-1'
+    rat_check(click.open_file(file, encoding='latin-1'), abs)
 
 @rat.command(name='print')
 @click.argument('file', type=click.File('r'))
