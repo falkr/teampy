@@ -1,6 +1,5 @@
-import teampy
 import os
-from teampy import Questionaire, SolutionDocument, Students, Teams, Solution
+from teampy.__init__ import Questionaire, SolutionDocument, Students, Teams, Solution, TeampyApp
 from colorama import init, Fore, Style
 
 import click
@@ -46,20 +45,38 @@ def rat_create():
         os.makedirs(directory)
     file = os.path.join(directory, 'questions.md')
 
-def rat_check(file_input, file_path):
-    """
-    Read the RAT questionaire, check for consistency, print it as tex document,
-    but without solutions or fo specific students or teams.
-    """
+
+def _load_rat_file(file_input):
     content = file_input.readlines()
     file_input.close()
     questionaire = Questionaire()
     code, message = questionaire._parse(content)
     if code == 1: # warnig
         print(Fore.YELLOW + message + Style.RESET_ALL)
-        return
+        return None
     elif code == 2: # error
         print(Fore.RED + message + Style.RESET_ALL)
+        return None
+    return questionaire
+
+
+def write_latex(latex, file_path):
+    tex_file_name = os.path.splitext(os.path.basename(file_path))[0] + '.tex'
+    tex_file_path = os.path.join(os.path.dirname(file_path), tex_file_name)
+    # TODO check if file already exists
+    with open(tex_file_path, "w") as file:
+        file.write(latex)
+    # copy also ratbox figures
+    copy_figures(os.path.dirname(file_path))
+
+
+def rat_check(file_input, file_path):
+    """
+    Read the RAT questionaire, check for consistency, print it as tex document,
+    but without solutions or fo specific students or teams.
+    """
+    questionaire = _load_rat_file(file_input)
+    if questionaire is None:
         return
 
     # does not detect 4 fake answers, or several true answers, improve parser
@@ -73,45 +90,30 @@ def rat_check(file_input, file_path):
             print(Fore.RED + 'Question {} has no true answer. The first answer alternative must be the true one.'.format(question.number) + Style.RESET_ALL)
             return
     print(Fore.GREEN + 'OK' + Style.RESET_ALL)
-
-    tex_file_name = os.path.splitext(os.path.basename(file_path))[0] + '.tex'
-    tex_file_path = os.path.join(os.path.dirname(file_path), tex_file_name)
-    # TODO check if file already exists
-    with open(tex_file_path, "w") as file:
-        file.write(questionaire.write_latex())
-    # copy also ratbox figures
-    copy_figures(os.path.dirname(file_path))
+    latex = questionaire.write_latex()
+    write_latex(latex, file_path)
 
 
-def rat_print(rat):
+def rat_print(file_input, file_path):
     """
     Create a document with RATs for all students and all teams.
     """
-    # load the student file
-    students = load_students()
-    teams = load_teams()
+    teampy = Teampy()
+    questionaire = _load_rat_file(file_input)
+    if questionaire is None:
+        return
 
-    # find out which RAT to print
-    #current working directory
-    cwd = os.getcwd()
-    print(cwd)
-    from os.path import isfile, join
-    for item in os.listdir(cwd):
-        if isfile(join(cwd, item)):
-            print(item)
-    # read in Questionaire
-    questionaire = Questionaire.read_questionaire('../tests/data/rat-01.md')
-    for q in questionaire.questions:
-        print(q)
-
+    # TODO ask for which code to use for teams.
+    # TODO look for already existing solution document, load and update it
     # create a solution file
     sd = SolutionDocument()
-    sd.create_solution_document(teams, students, questionaire, '1c 2b 3c 4c 5b 6a 7a 8d 9a 10b')
-    sd.store('solution.xlsx')
+    sd.create_solution_document(teampy.teams, teampy.students, questionaire, '1c 2b 3c 4c 5b 6a 7a 8d 9a 10b')
+    solutions_file_path = os.path.join(os.path.dirname(file_path), 'solutions.yaml')
+    sd.store(solutions_file_path)
 
-    latex = questionaire.write_latex(sd, teams, students)
-    with open("questionaire.tex", "w") as text_file:
-        text_file.write(latex)
+    latex = questionaire.write_latex(sd, teampy.teams, teampy.students)
+    write_latex(latex, file_path)
+
 
 @click.group()
 @click.version_option(teampy.__version__)
@@ -135,6 +137,15 @@ def new():
     """
     click.echo('Create a new RAT.')
     # store as ISO-Latin-1
+    # ask for a title
+    # ask for number of questions
+    # ask for answer alternatives
+
+    #
+
+    # example question?
+
+    # a complete example document?
 
 @rat.command()
 #@click.argument('file', type=click.File('r'))
@@ -143,29 +154,17 @@ def check(file):
     """
     Check a RAT file for consistency before printing.
     """
-    print(type(file))
-    print(file)
-
-    cwd = os.getcwd()
-    print(cwd)
-    from os.path import isfile, join
-    j = join(cwd, file)
-    abs = os.path.abspath(j)
-    dir = os.path.dirname(abs)
-    print(dir)
-    print(isfile(j))
-    print(type(j))
-    # , encoding='latin-1'
     rat_check(click.open_file(file, encoding='latin-1'), abs)
 
 @rat.command(name='print')
-@click.argument('file', type=click.File('r'))
+#@click.argument('file', type=click.File('r'))
+@click.argument('file', type=click.Path(exists=True))
+@click.option('--teamsolution', prompt='Team solution', help='Code of the team scratch card or team solution.')
 def print_(file):
     """
     Print a RAT before class.
     """
-    click.echo('Print the rat')
-    print(type(file))
+    rat_print(click.open_file(file, encoding='latin-1'), abs)
 
 @rat.command()
 def eval():

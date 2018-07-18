@@ -58,11 +58,52 @@ class Students:
         student = self.df.loc[student_id]
         return '{} {}'.format(student['firstname'], student['lastname'])
 
+    def get_team_ids():
+        return student['team'].unique()
+
+    def write_students_file():
+        students = [{'id': 'aa1', 'team': '01', 'lastname': 'Kraemer', 'firstname': 'Frank Alexander', 'email': 'kraemer@ntnu.no'}]
+        students = pd.DataFrame.from_dict(students)
+        students = students.set_index('id')
+        students.to_excel('students.xlsx')
+
+    def generate_ids():
+        assert False
+        def get_unique_id(a, b, ids):
+            for i in range(1,100):
+                idx = (a + b + str(i)).lower()
+                if idx not in ids:
+                    ids.append(idx)
+                    return idx
+        email_to_id = {}
+        # TODO get already existing ids
+        # TODO only set ids on rows that do not yet have one
+        ids = []
+        for index, row in df.iterrows():
+            id = get_unique_id(row['firstname'][0:1], row['lastname'][0:1], ids)
+            email_to_id[row['email']] = id
+        df['id'] = df['email'].apply(lambda x: email_to_id[x])
+
+    def check():
+        # TODO check that all emails are valid and unique
+        # TODO check name characters (Latin-1 encoding?)
+        # TODO check unique ID
+        assert False
+
 
 class Teams:
-    def __init__(self, filename):
+    def __init__(self):
+        pass
+
+    def from_excel(filename):
         self.df = pd.read_excel(filename)
         self.df = self.df.set_index('id')
+
+    def from_students(students):
+        ids = student.get_team_ids()
+        # ids as both id and name
+        data = array([['id','name'], ids, ids])
+        self.df = pd.DataFrame(data=ids, index=ids, columns=['id','name'])
 
     def get_ids(self):
         return self.df.index.values
@@ -274,13 +315,26 @@ class Solution:
         A solution string looks like this:
         5a 6b 4c
 
+        Or like this:
+
+        a b c
         """
         questions = []
         answers = []
-        for token in solution_string.split():
-            token = token.strip()
-            questions.append(token[0:-1])
-            answers.append(token[-1:])
+        if any(char.isdigit() for char in solution_string):
+            # form that also shuffles the sequence of questions
+            for token in solution_string.split():
+                token = token.strip()
+                questions.append(token[0:-1])
+                answers.append(token[-1:])
+            # questions stay in the same sequence
+            int question_number = 0
+            for token in solution_string.split():
+                question_number += 1
+                token = token.strip()
+                questions.append(str(question_number))
+                answers.append(token[-1:])
+
         return Solution(id, questions, answers)
 
     def to_string(self):
@@ -322,12 +376,14 @@ class SolutionDocument:
 
     def store(self, filename):
         # create a data frame and store it
-        content = []
-        for key, solution in self.solutions.items():
-            content.append({'id': key, 'solution': solution.to_string()})
-        df = pd.DataFrame(content)
-        df = df.set_index('id')
-        df.to_excel(filename)
+        #content = []
+        #for key, solution in self.solutions.items():
+        #    content.append({'id': key, 'solution': solution.to_string()})
+        #df = pd.DataFrame(content)
+        #df = df.set_index('id')
+        #df.to_excel(filename)
+        with open(filename, 'w') as outfile:
+            yaml.dump(self.solutions, outfile, default_flow_style=False)
 
     def load(self, filename):
         df = pd.read_excel(filename)
@@ -338,33 +394,63 @@ class SolutionDocument:
         for key, solution in self.solutions.items():
             print('{} / {}'.format(key, solution.to_string()))
 
-def load_students():
-    # look for students file
-    students = Students('../tests/data/students.xlsx')
-    return students
 
-def load_teams():
-    # look for teams file
-    teams = Teams('../tests/data/teams.xlsx')
-    return teams
+class TeampyApp:
 
-if __name__ == "__main__":
+    def _init__(self):
+        self.load_context()
 
+    def load_scratch_cards(self, filename):
+        rawcodes = yaml.load(open(filename, 'r', encoding='latin-1'))
+        codes = {}
+        for key in rawcodes:
+            codes[key] = Solution.create_solution_from_string(rawcodes[key])
+        return codes
+
+    def find_main_directory(self):
+        # look in the current working directory
+        dirs = [os.getcwd(), os.dirname(os.getcwd())]
+        for directory in dirs:
+            student_file = os.path.join(directory, 'students.xlsx')
+            if os.path.isfile(student_file):
+                return directory
+        return None
+
+    def load_context(self):
+        directory = self.find_main_directory()
+        if directory is None:
+            print('Could not find the students file.')
+            quit()
+
+        students_file = os.path.join(directory, 'students.xlsx')
+        self.students = Students(students_file)
+
+        teams_file = os.path.join(directory, 'teams.xlsx')
+        if os.path.isfile(teams_file):
+            self.teams = Teams.from_excel(teams_file)
+        else:
+            self.teams = Teams.from_students(students)
+
+        self.scratchcards = {}
+        scratchcards_file = os.path.join(directory, 'scratchcards.txt')
+        if os.path.isfile(scratchcards_file):
+            self.scratchcards = self.load_scratch_cards(scratchcards_file)
+
+
+#if __name__ == "__main__":
     #print_teams()
     #rat_create()
-    rat_print()
+#    rat_print()
 
-    print('Current directory: {}'.format(os.getcwd()))
+#    print('Current directory: {}'.format(os.getcwd()))
 
-    student_file = os.path.join(os.getcwd(), 'students.xlsx')
-    if not os.path.isfile(student_file):
-        print('Cannot find the file with name students.xlsx')
+#    student_file = os.path.join(os.getcwd(), 'students.xlsx')
+#    if not os.path.isfile(student_file):
+#        print('Cannot find the file with name students.xlsx')
 
     #print('Current parent directory: {}'.format(dirname(os.getcwd())))
 
     #print(students.get_ids())
-
-
 
     #
     #print_formatted_text(HTML('<ansired>This is red</ansired>'))

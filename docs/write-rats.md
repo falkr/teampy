@@ -39,7 +39,10 @@ defines the title of the RAT, like here *Fruits and Vegetables*.
 
 ## Figures
 
-A question can include a figure, using the code `![](figures/fruits.pdf)`.
+A question can include a figure, using the following code: 
+
+    ![](figures/fruits.pdf)
+
 The image should be contained in a folder `figures`, and the types can be PDF, JPG or PNG.
 (With LaTeX creating the final document, PDF with vector graphics is often the best option.)
 
