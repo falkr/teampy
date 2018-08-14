@@ -437,7 +437,7 @@ class Teampy:
             self.teams = Teams.from_students(self.students)
 
         self.scratchcards = {}
-        scratchcards_file = os.path.join(directory, 'scratchcards.yaml')
+        scratchcards_file = os.path.join(directory, 'scratchcards.txt')
         if os.path.isfile(scratchcards_file):
             tell('Reading the scratchcards file.')
             self.scratchcards = self.load_scratch_cards(scratchcards_file)

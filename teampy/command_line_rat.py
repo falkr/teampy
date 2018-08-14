@@ -114,17 +114,19 @@ def rat_print(file_input, file_path, team_solution):
         tell('Found scratch card {} with solution {}'.format(scratch_card_id, team_solution.to_string()))
     else:
         # TODO check if solution matches requirement from questionaire
-        print('Parsing {} as a solution.'.format(team_solution))
         team_solution = Solution.create_solution_from_string(team_solution)
 
     # TODO check if team solution has correct number
-
-    # TODO ask for which code to use for teams.
     # TODO look for already existing solution document, load and update it
+
     # create a solution file
     sd = SolutionDocument()
     sd.create_solution_document(t.teams, t.students, questionaire, team_solution)
-    solutions_file_path = os.path.join(os.path.dirname(file_path), 'solutions.yaml')
+
+    head, tail = os.path.split(file_path)
+    tail_base = tail.split('.')[0]
+
+    solutions_file_path = os.path.join(os.path.dirname(file_path), '{}.yaml'.format(tail_base))
     sd.store(solutions_file_path)
     tell('Write solutions into file {}.'.format(solutions_file_path))
 
@@ -186,6 +188,7 @@ def print_(file, teamsolution):
     """
     Print a RAT before class.
     """
+    # TODO if no valid team solution code is shown, add prompt that also shows which scratch cards are available
     print_teampy()
     rat_print(click.open_file(file, encoding='latin-1'), file, teamsolution)
 
