@@ -10,7 +10,7 @@ Teampy expects the following file and folder structure:
     - **teams.xlsx**
     - **scratchcards.txt**
     - rat-01/
-        - **questions.md**
+        - **rat01.md**
         - solutions.xlsx
         - results1.txt
         - results1.xlsx
@@ -73,3 +73,7 @@ The file simply contains one code in each line, separated with a colon.
     ...
 
 The name of the file must be `scratchcards.txt'.
+
+## Readiness Assurance Tests (RATs)
+
+Each RAT is stored in a separate folder, containing several files for each of them.  

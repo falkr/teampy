@@ -4,16 +4,12 @@
 # Teampy: Tools for Team-Based Learning
 
 This is a set of Python scripts to manage readiness assurance tests for
-team-based learning.
-
-In detail, Teampy helps you with the following:
-
-Manage *paper-based* readiness assurance tests (RATs):
+team-based learning. Teampy helps you to manage *paper-based* readiness assurance tests (RATs).
 
 * Write your RAT in a simple textual format, in any text editor of your choice.
 * Convert the raw RATs into LaTeX, from which you can generate PDF.
 * Teampy shuffles the questions and answers for each student, so that cheating is a bit harder.
-* Collect the answers by documenting a single line of text for each student.
+* Collect the answers by writing a single line of text for each student.
 * Look at the results of a class to give feedback to students.
 * Send individual results to each student via your own email.
 

@@ -69,6 +69,9 @@ class Students:
         # TODO check unique ID
         assert False
 
+    def exists(self, student_id):
+        return student_id in self.df.index.values
+
 
 class Teams:
     def __init__(self):
@@ -90,6 +93,9 @@ class Teams:
 
     def get_ids(self):
         return self.df.index.values
+
+    def exists(self, student_id):
+        return student_id in self.df.index.values
 
 
 class Question:
@@ -201,7 +207,7 @@ class Questionaire:
         return 0, None
 
     def read_questionaire(filename):
-        with open(filename, 'r') as file:
+        with open(filename, 'r', encoding='latin-1') as file:
             content = file.readlines()
             questionaire = Questionaire()
             questionaire._parse(content)
@@ -396,6 +402,101 @@ class SolutionDocument:
         for key, solution in self.solutions.items():
             print('{} / {}'.format(key, solution.to_string()))
 
+
+class ResultLine:
+
+    def __init__(self, result_id, result, checksum, line_number):
+        self.result_id = result_id
+        self.result = result
+        self.checksum = checksum
+        self.line_number = line_number
+
+
+class Result:
+
+    def __init__(self):
+        pass
+
+    def _parse_result_line(self, result, line_number):
+        tokens = result.split('/')
+        if len(tokens) != 3:
+            tell('The result string in line {} must consist of id/result/checksum.'.format(line_number), 'warn')
+            return None
+        return ResultLine(tokens[0].strip(),
+                          tokens[1].strip(),
+                          tokens[2].strip(),
+                          line_number)
+
+    def _parse_results(self, lines, teams, students):
+        # initial --> preamble --> results
+        state = 'initial'
+        line_number = 0
+        preamble = []
+        result_lines = []
+        unique_ids = []
+        for line in lines:
+            line_number = line_number + 1
+            line = line.strip()
+            if not line:
+                # ignore empty lines
+                continue
+            if state == 'initial':
+                if line.startswith('---'): # yaml preamble start
+                    state = 'preamble'
+                else:
+                    return 2, 'Error in line {}: The file needs a Yaml preamble, starting with ---.'.format(linenumber)
+            elif state == 'preamble':
+                if line.startswith('---'): # yaml preamble end
+                    preamble = yaml.load('\n'.join(preamble))
+                    # assign table to object
+                    state = 'results'
+                else:
+                    preamble.append(line)
+            elif state == 'results':
+                if line.startswith('#'):
+                    # ignore, it's a comment
+                    pass
+                else:
+                    result_line = self._parse_result_line(line, line_number)
+                    if result_line is not None:
+                        result_lines.append(result_line)
+                        if result_line.result_id in unique_ids:
+                             tell('Line {}: A line with the id {} already exists.'.format(result_line.line_number, result_line.result_id), 'warn')
+                        else:
+                            unique_ids.append(result_line.result_id)
+
+        # finished parsing the file
+
+        if state is not 'results':
+            tell('The results file is not complete.', 'error')
+
+        # check the preamble
+        if 'name' not in preamble:
+            tell('The results file should contain a name field in the preamble.', 'warn')
+        else:
+            self.name = preamble['name']
+        if 'date' not in preamble:
+            tell('The results file should contain a date field in the preamble.', 'warn')
+        else:
+            self.date = preamble['date']
+
+        for result_line in result_lines:
+            # check that student or team with matching id exists
+            if students.exists(result_line.result_id):
+                # found student
+                print('found {}'.format(result_line.result_id))
+            elif teams.exists(result_line.result_id):
+                # found team
+                print('found {}'.format(result_line.result_id))
+            else:
+                tell('Line {}: There exists no student or team with id {}.'.format(result_line.line_number, result_line.result_id), 'warn')
+            # TODO check that result has proper length
+            # TODO check that checksum is correct
+
+    def load_results(self, file_input, teams, students):
+        lines = file_input.readlines()
+        file_input.close()
+        self._parse_results(lines, teams, students)
 
 class Teampy:
 

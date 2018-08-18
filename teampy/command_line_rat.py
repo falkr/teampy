@@ -1,6 +1,6 @@
 import os
 import teampy
-from core import Questionaire, SolutionDocument, Students, Teams, Solution, Teampy, tell
+from teampy import Questionaire, SolutionDocument, Students, Teams, Solution, Result, Teampy, tell
 from colorama import init, Fore, Style
 
 
@@ -126,7 +126,7 @@ def rat_print(file_input, file_path, team_solution):
     head, tail = os.path.split(file_path)
     tail_base = tail.split('.')[0]
 
-    solutions_file_path = os.path.join(os.path.dirname(file_path), '{}.yaml'.format(tail_base))
+    solutions_file_path = os.path.join(os.path.dirname(file_path), '{}.solutions'.format(tail_base))
     sd.store(solutions_file_path)
     tell('Write solutions into file {}.'.format(solutions_file_path))
 
@@ -135,6 +135,16 @@ def rat_print(file_input, file_path, team_solution):
 
     tell('Done! ')
     print('   As a next step, print the LaTeX document and do the RAT.')
+
+
+def rat_grade(file_input, file_path):
+    """
+    Evaluate the results of a RAT.
+    """
+    teampy = Teampy()
+
+    result = Result()
+    result.load_results(file_input, teampy.students, teampy.teams)
 
 
 @click.group()
@@ -193,12 +203,13 @@ def print_(file, teamsolution):
     rat_print(click.open_file(file, encoding='latin-1'), file, teamsolution)
 
 @rat.command()
-def eval():
+@click.argument('file', type=click.Path(exists=True))
+def grade(file):
     """
     Evaluate a RAT during class.
     """
     print_teampy()
-    click.echo('Evaluate a RAT.')
+    rat_grade(click.open_file(file, encoding='latin-1'), file)
 
 if __name__ == "__main__":
     rat()

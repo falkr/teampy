@@ -39,7 +39,7 @@ defines the title of the RAT, like here *Fruits and Vegetables*.
 
 ## Figures
 
-A question can include a figure, using the following code: 
+A question can include a figure, using the following code:
 
     ![](figures/fruits.pdf)
 
@@ -49,7 +49,7 @@ The image should be contained in a folder `figures`, and the types can be PDF, J
 ## Current Constraints
 
 * There must always be **four** answer alternatives.
-* Text is transformed into LaTeX as it is written, i.e., markdown or other letters are not escaped.
+* Text is transformed into LaTeX as it is written, i.e., Markdown or other letters are not translated.
 * A question can have **at most one figure**.
 
 ## Filenames
@@ -59,6 +59,7 @@ The RAT files should be stored in their own folder, so that Teampy creates other
 - course/
     - **students.xlsx**
     - **teams.xlsx**
+    - **scratchcards.txt**
     - rat-01/
         - **questions.md**
         - solutions.xlsx
@@ -85,5 +86,5 @@ To do so, run the following command in the command line:
     rat check questions.md
 
 We assume here that you are in the directory of the RAT, and that `questions.md` is the name of your RAT file.
-
-The `rat check` command does not require that your students file exists. The RAT is printed
+The `rat check` command does not require that your students file exists, and it does not require you to select a scratch card for the solution. 
+It just creates a LaTeX file with the questions in their original order and with the correct answer sorted first.
