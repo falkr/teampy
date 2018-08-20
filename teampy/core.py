@@ -5,6 +5,8 @@ import random
 import numpy as np
 import pandas as pd
 
+import re
+
 from colorama import init, Fore, Style
 
 # colorama
@@ -21,6 +23,46 @@ def tell(message, level='info'):
         print(Fore.YELLOW + Style.BRIGHT +  ' - ' + Style.RESET_ALL + message)
     else:
         print(Fore.RED + Style.BRIGHT +  ' - ' + Style.NORMAL + message)
+
+def tex_escape(text):
+    """
+        :param text: a plain text message
+        :return: the message escaped to appear correctly in LaTeX
+    """
+    conv = {
+        'æ': r'\ae{}',
+        'Æ': r'\AE{}',
+        'ø': r'\o{}',
+        'Ø': r'\O{}',
+        'å': r'\aa{}',
+        'Å': r'\AA{}',
+        'ä': r'\AE{}',
+        'Ä': r'\AE{}',
+        'ö': r'\"o{}',
+        'Ö': r'\"O{}',
+        'ü': r'\"u{}',
+        'Ü': r'\"U{}',
+        'ß': r'\ss{}',
+        'ç': r'\c{c}',
+        'Ç': r'\c{C}',
+        'ô': r'\^{o}',
+        'Ô': r'\^{O}',
+        'á': r'\'{a}',
+        'Á': r'\'{A}',
+        'à': r'\`{a}',
+        'À': r'\`{A}',
+        'é': r'\'{e}',
+        'É': r'\'{E}',
+        'è': r'\`{e}',
+        'È': r'\`{E}',
+        'ó': r'\'{o}',
+        'Ó': r'\'{O}',
+        'ò': r'\`{o}',
+        'Ò': r'\`{O}',
+        # TODO add many more... like french accents,...
+    }
+    regex = re.compile('|'.join(re.escape(key) for key in sorted(conv.keys(), key = lambda item: - len(item))))
+    return regex.sub(lambda match: conv[match.group()], text)
 
 class Students:
     def __init__(self, filename):
@@ -141,6 +183,9 @@ class Questionaire:
     def __init__(self):
         self.questions = []
 
+    def number_of_questions():
+        return len(self.questions)
+
     def _parse(self, lines):
         def remove_answer_prefix(line):
             if line.startswith('{1} true:'):
@@ -248,12 +293,12 @@ class Questionaire:
             #lines.append('\\subsubsection*\{Team {}\}\n'.format(team_id))
             lines.append('\\subsubsection*{{Team {}}}\n'.format(team_id))
             for student_id in students.get_student_ids_of_team(team_id):
-                name = students.get_name(student_id)
+                name = tex_escape(students.get_name(student_id))
                 solution = solution_document.student_solutions[student_id].to_string()
                 lines.append('{}:{}\\\\\n'.format(name, solution))
         lines.append(page_break)
 
-        # TODO list solution for extra student
+        # TODO list solution for extra students
 
         # questionaire for each team:
         for team_id in teams.get_ids():
@@ -265,7 +310,7 @@ class Questionaire:
             lines.append(page_break)
 
         for student_id in students.get_ids(): # TODO sort by table
-            name = students.get_name(student_id)
+            name = tex_escape(students.get_name(student_id))
             lines.append('\\individualprefix{{{}}}{{{}}}{{{}}}\n\n'.format(name, student_id, team_id))
             solution = solution_document.student_solutions[student_id]
             # sort question according to solution for this student
@@ -290,9 +335,10 @@ class Solution:
         self.answers = answers
 
     def create_solution_from_questionaire(questionaire):
+        # TODO we should check that the solution does not contain 10 times the same letter, because that would mess up the format of the checksum
         questions = []
         answers = []
-        # for each question, select the right answer
+        # for each question, select a random right answer
         for question in range(1, len(questionaire.questions)+1):
             questions.append(question)
             answers.append(random.choice(['a', 'b', 'c', 'd']))
@@ -393,10 +439,16 @@ class SolutionDocument:
             file.write("".join(lines))
             #yaml.dump(self.solutions, outfile, default_flow_style=False)
 
-    def load(self, filename):
-        df = pd.read_excel(filename)
-        for index, row in df.iterrows():
-            self.solutions[row['id']] = Solution.create_solution_from_string(row['id'], row['solution'])
+    def load(self, filename, students, teams):
+        #df = pd.read_excel(filename)
+        #for index, row in df.iterrows():
+        #    self.solutions[row['id']] = Solution.create_solution_from_string(row['id'], row['solution'])
+        rawcodes = yaml.load(open(filename, 'r', encoding='latin-1'))
+        for key in rawcodes:
+            if teams.exists(key):
+                self.team_solutions[key] = Solution.create_solution_from_string(key, rawcodes[key])
+            elif students.exists(key):
+                self.student_solutions[key] = Solution.create_solution_from_string(key, rawcodes[key])
 
     def printx(self):
         for key, solution in self.solutions.items():
@@ -405,19 +457,71 @@ class SolutionDocument:
 
 class ResultLine:
 
-    def __init__(self, result_id, result, checksum, line_number):
+    def __init__(self, result_id, result, checksum, line_number, questionaire):
         self.result_id = result_id
         self.result = result
         self.checksum = checksum
         self.line_number = line_number
+        self.questionaire = questionaire
+        # will be set later:
+        self.solution = None
+        self.type = None # 'student' or 'team'
+
+    def check(self):
+        # check that result has proper length
+        if len(self.result) != questionaire.number_of_questions():
+            tell('Line {}: The result entry for id {} has {} letters, but the RAT has {} questions.'.format(self.line_number, self.result_id, len(self.result), questionaire.number_of_questions()), 'error')
+            return False
+        # check that the answer alternatives are proper letters within the range (+x)
+        valid_letters = ['a', 'b', 'c', 'd', 'x']
+        for letter in self.result:
+            if letter not in valid_letters:
+                tell('Line {}: The result entry for id {} contains letter "{}", which is not valid. Only answer alternative letters ("a", "b",...) and "x" are allowed.'.format(self.line_number, self.result_id, letter), 'error')
+                return False
+        # check that checksum is correct, and that it corresponds with result string
+        if self.type is 'student':
+            if len(self.checksum) != 4:
+                tell('Line {}: The checksum for id {} is wrong.'.format(self.line_number, self.result_id), 'error')
+                return False
+            for number in self.checksum:
+                if number not in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']:
+                    tell('Line {}: The checksum for id {} is wrong.'.format(self.line_number, self.result_id), 'error')
+                    return False
+            for index, letter in enumerate(['a', 'b', 'c', 'd']):
+                if self.result.count(letter) != int(self.checksum[index]):
+                    tell('Line {}: The checksum for id {} is inconsistent.'.format(self.line_number, self.result_id), 'error')
+                    return False
+        elif self.type is 'team':
+            pass
+            # count correct results
+
+        # unshuffle the questions, bring back into original question sequence
+        normalized_results = []
+        for index, question in enumerate(solution.questions):
+            answer_given = self.results[question-1]
+            answer_given_ord = ord(answer_given) - ord('a') # 0, 1, 2,...
+            # now also transform back the answer given, based on the solution letter
+            answer_key = solution.answers[index]
+            array = np.asarray(['a', 'b', 'c', 'd'])
+            hops = ord('a') - ord(answer_key)
+            answer_given = np.roll(array, -hops)[answer_given_ord]
+            normalized_results.append(answer_given)
+
+        print('--Results for {}'.format(self.result_id))
+        print('              {}'.format(self.result))
+        print('              {}'.format(self.solution.to_string()))
+        print('              {}'.format("".join(self.normalized_results)))
+
+        # TODO also count what was the most popular answer
 
 
 class Result:
 
     def __init__(self):
-        pass
+        student_results = {}
+        team_results = {}
 
-    def _parse_result_line(self, result, line_number):
+    def _parse_result_line(self, result, line_number, questionaire):
         tokens = result.split('/')
         if len(tokens) != 3:
             tell('The result string in line {} must consist of id/result/checksum.'.format(line_number), 'warn')
@@ -425,9 +529,14 @@ class Result:
         return ResultLine(tokens[0].strip(),
                           tokens[1].strip(),
                           tokens[2].strip(),
-                          line_number)
+                          line_number, questionaire)
 
-    def _parse_results(self, lines, teams, students):
+
+    def load_results(self, file_input, teams, students, questionaire, solution_document):
+        lines = file_input.readlines()
+        file_input.close()
+        tell('Reading results file.')
+
         # initial --> preamble --> results
         state = 'initial'
         line_number = 0
@@ -436,7 +545,8 @@ class Result:
         unique_ids = []
         for line in lines:
             line_number = line_number + 1
-            line = line.strip()
+            # remove all whitespace and transform to lower case
+            line = line.strip().lower().replace(' ', '')
             if not line:
                 # ignore empty lines
                 continue
@@ -447,7 +557,8 @@ class Result:
                     return 2, 'Error in line {}: The file needs a Yaml preamble, starting with ---.'.format(linenumber)
             elif state == 'preamble':
                 if line.startswith('---'): # yaml preamble end
-                    preamble = yaml.load('\n'.join(preamble))
+                    yamlpreamble = yaml.load('\n'.join(preamble))
+                    print(yamlpreamble)
                     # assign table to object
                     state = 'results'
                 else:
@@ -457,46 +568,52 @@ class Result:
                     # ignore, it's a comment
                     pass
                 else:
-                    result_line = self._parse_result_line(line, line_number)
+                    result_line = self._parse_result_line(line, line_number, questionaire)
                     if result_line is not None:
                         result_lines.append(result_line)
                         if result_line.result_id in unique_ids:
                              tell('Line {}: A line with the id {} already exists.'.format(result_line.line_number, result_line.result_id), 'warn')
                         else:
                             unique_ids.append(result_line.result_id)
-
+        print(type(yamlpreamble))
+        print(' --- {}'.format(state) )
         # finished parsing the file
 
         if state is not 'results':
             tell('The results file is not complete.', 'error')
 
         # check the preamble
-        if 'name' not in preamble:
+        if 'name' not in yamlpreamble:
             tell('The results file should contain a name field in the preamble.', 'warn')
         else:
-            self.name = preamble['name']
-        if 'date' not in preamble:
+            self.name = yamlpreamble['name']
+        if 'date' not in yamlpreamble:
             tell('The results file should contain a date field in the preamble.', 'warn')
         else:
-            self.date = preamble['date']
+            self.date = yamlpreamble['date']
 
         for result_line in result_lines:
             # check that student or team with matching id exists
-            if students.exists(result_line.result_id):
-                # found student
-                print('found {}'.format(result_line.result_id))
-            elif teams.exists(result_line.result_id):
-                # found team
-                print('found {}'.format(result_line.result_id))
+            if students.exists(result_line.result_id): # found student
+                student_results[result_line.result_id] = result_line
+                result_line.type = 'student'
+                solution = solution_document.get_student_solution(result_line.result_id)
+                if solution is None:
+                     tell('Line {}: There exists no solution for student with id {}.'.format(result_line.line_number, result_line.result_id), 'error')
+                else:
+                    result_line.solution = solution
+            elif teams.exists(result_line.result_id): # found team
+                team_results[result_line.result_id] = result_line
+                result_line.type = 'team'
+                solution = solution_document.get_team_solution(result_line.result_id)
+                if solution is None:
+                     tell('Line {}: There exists no solution for team with id {}.'.format(result_line.line_number, result_line.result_id), 'error')
+                else:
+                    result_line.solution = solution
             else:
                 tell('Line {}: There exists no student or team with id {}.'.format(result_line.line_number, result_line.result_id), 'warn')
-            # TODO check that result has proper length
-            # TODO check that checksum is correct
+            result_line.check()
 
-    def load_results(self, file_input, teams, students):
-        lines = file_input.readlines()
-        file_input.close()
-        self._parse_results(lines, teams, students)
 
 class Teampy:
 
@@ -542,3 +659,12 @@ class Teampy:
         if os.path.isfile(scratchcards_file):
             tell('Reading the scratchcards file.')
             self.scratchcards = self.load_scratch_cards(scratchcards_file)
+
+
+class RATContext:
+
+    def __init__(self, teampy):
+        self.teampy = teampy
+        directory = os.getcwd()
+        self.questionaire_file = os.path.join(directory, 'questions.txt')
+        self.solutions_file = os.path.join(directory, 'solutions.teampy')

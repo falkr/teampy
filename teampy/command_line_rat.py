@@ -1,6 +1,6 @@
 import os
 import teampy
-from teampy import Questionaire, SolutionDocument, Students, Teams, Solution, Result, Teampy, tell
+from teampy import Questionaire, SolutionDocument, Students, Teams, Solution, Result, Teampy, RATContext, tell
 from colorama import init, Fore, Style
 
 
@@ -68,7 +68,7 @@ def write_latex(latex, file_path):
     tex_file_name = os.path.splitext(os.path.basename(file_path))[0] + '.tex'
     tex_file_path = os.path.join(os.path.dirname(file_path), tex_file_name)
     # TODO check if file already exists
-    with open(tex_file_path, "w") as file:
+    with open(tex_file_path, "w", encoding='utf-8') as file:
         file.write(latex)
     # copy also ratbox figures
     copy_figures(os.path.dirname(file_path))
@@ -142,9 +142,19 @@ def rat_grade(file_input, file_path):
     Evaluate the results of a RAT.
     """
     teampy = Teampy()
+    rat = RATContext(teampy)
+
+    # read in the questionaire
+    questionaire = _load_rat_file(click.open_file(rat.questionaire_file, encoding='latin-1'))
+    if questionaire is None:
+        tell('Could not read questions. Aborting.', 'error')
+        return
+    # read in the solutions file
+    solutions = SolutionDocument()
+    solutions.load(rat.solutions_file, teampy.students, teampy.teams)
 
     result = Result()
-    result.load_results(file_input, teampy.students, teampy.teams)
+    result.load_results(file_input, teampy.students, teampy.teams, questionaire, solutions)
 
 
 @click.group()

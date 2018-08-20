@@ -21,7 +21,7 @@ import pandas as pd
 
 from colorama import init, Fore, Style
 
-from teampy.core import Questionaire, SolutionDocument, Students, Teams, Solution, Result, Teampy, tell
+from teampy.core import Questionaire, SolutionDocument, Students, Teams, Solution, Result, Teampy, RATContext, tell
 
 # colorama
 #init(convert=True) # only if trouble on windows
