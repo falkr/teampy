@@ -2,9 +2,9 @@ from distutils.core import setup
 setup(
   name='teampy',
   packages=['teampy'],
-  version='0.1.7',
+  version='0.1.14',
   description='Tools for Team-Based Learning',
-  install_requires=['pyyaml', 'colorama', 'click', 'numpy', 'pandas'],
+  install_requires=['pyyaml', 'colorama', 'click', 'numpy', 'pandas', 'xlrd'],
   package_data={
         '': ['*.tex', '*.pdf'],
     },

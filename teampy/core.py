@@ -79,6 +79,10 @@ class Students:
         student = self.df.loc[student_id]
         return '{} {}'.format(student['firstname'], student['lastname'])
 
+    def get_team(self, student_id):
+        student = self.df.loc[student_id]
+        return student['team']
+
     def get_team_ids(self):
         return self.df['team'].unique()
 
@@ -136,8 +140,10 @@ class Teams:
     def get_ids(self):
         return self.df.index.values
 
-    def exists(self, student_id):
-        return student_id in self.df.index.values
+    def exists(self, team_id):
+        print(self.df.index.values)
+        print(type(team_id))
+        return team_id in self.df.index.values
 
 
 class Question:
@@ -183,7 +189,7 @@ class Questionaire:
     def __init__(self):
         self.questions = []
 
-    def number_of_questions():
+    def number_of_questions(self):
         return len(self.questions)
 
     def _parse(self, lines):
@@ -309,8 +315,9 @@ class Questionaire:
                 lines.append(question.write_latex(question.number, key))
             lines.append(page_break)
 
-        for student_id in students.get_ids(): # TODO sort by table
+        for student_id in students.get_ids(): # TODO sort by table, team, or surname
             name = tex_escape(students.get_name(student_id))
+            team_id = students.get_team(student_id)
             lines.append('\\individualprefix{{{}}}{{{}}}{{{}}}\n\n'.format(name, student_id, team_id))
             solution = solution_document.student_solutions[student_id]
             # sort question according to solution for this student
@@ -412,6 +419,20 @@ class SolutionDocument:
         self.student_solutions = {}
         self.team_solutions = {}
 
+    def get_team_solution(self, team_id):
+        if team_id in self.team_solutions:
+            return self.team_solutions[team_id]
+        else:
+            print('no team solution for {}'.format(team_id))
+            print(self.team_solutions)
+            return None
+
+    def get_student_solution(self, student_id):
+        if student_id in self.student_solutions:
+            return self.student_solutions[student_id]
+        else:
+            return None
+
     # add teams
     def create_solution_document(self, teams, students, questionaire, scratchcard_solution):
         for team_id in teams.get_ids():
@@ -444,11 +465,18 @@ class SolutionDocument:
         #for index, row in df.iterrows():
         #    self.solutions[row['id']] = Solution.create_solution_from_string(row['id'], row['solution'])
         rawcodes = yaml.load(open(filename, 'r', encoding='latin-1'))
+        print('loading solutions document')
         for key in rawcodes:
+            key = str(key) #yaml can read it as int
+            print(type(key))
+            print(key)
             if teams.exists(key):
-                self.team_solutions[key] = Solution.create_solution_from_string(key, rawcodes[key])
+                self.team_solutions[key] = Solution.create_solution_from_string(rawcodes[key])
             elif students.exists(key):
-                self.student_solutions[key] = Solution.create_solution_from_string(key, rawcodes[key])
+                self.student_solutions[key] = Solution.create_solution_from_string(rawcodes[key])
+            else:
+                print('does not exist {}'.format(key))
+                print(type(key))
 
     def printx(self):
         for key, solution in self.solutions.items():
@@ -469,8 +497,8 @@ class ResultLine:
 
     def check(self):
         # check that result has proper length
-        if len(self.result) != questionaire.number_of_questions():
-            tell('Line {}: The result entry for id {} has {} letters, but the RAT has {} questions.'.format(self.line_number, self.result_id, len(self.result), questionaire.number_of_questions()), 'error')
+        if len(self.result) != self.questionaire.number_of_questions():
+            tell('Line {}: The result entry for id {} has {} letters, but the RAT has {} questions.'.format(self.line_number, self.result_id, len(self.result), self.questionaire.number_of_questions()), 'error')
             return False
         # check that the answer alternatives are proper letters within the range (+x)
         valid_letters = ['a', 'b', 'c', 'd', 'x']
@@ -495,22 +523,25 @@ class ResultLine:
             pass
             # count correct results
 
+        if self.solution is None:
+            return
+
         # unshuffle the questions, bring back into original question sequence
-        normalized_results = []
-        for index, question in enumerate(solution.questions):
-            answer_given = self.results[question-1]
+        normalized_results = {} #= np.arange(self.questionaire.number_of_questions())
+        for index, question in enumerate(self.solution.questions):
+            answer_given = self.result[index]
             answer_given_ord = ord(answer_given) - ord('a') # 0, 1, 2,...
             # now also transform back the answer given, based on the solution letter
-            answer_key = solution.answers[index]
+            answer_key = self.solution.answers[index]
             array = np.asarray(['a', 'b', 'c', 'd'])
             hops = ord('a') - ord(answer_key)
             answer_given = np.roll(array, -hops)[answer_given_ord]
-            normalized_results.append(answer_given)
+            normalized_results[int(question)] = answer_given
 
         print('--Results for {}'.format(self.result_id))
         print('              {}'.format(self.result))
         print('              {}'.format(self.solution.to_string()))
-        print('              {}'.format("".join(self.normalized_results)))
+        print('              {}'.format(normalized_results))
 
         # TODO also count what was the most popular answer
 
@@ -518,8 +549,8 @@ class ResultLine:
 class Result:
 
     def __init__(self):
-        student_results = {}
-        team_results = {}
+        self.student_results = {}
+        self.team_results = {}
 
     def _parse_result_line(self, result, line_number, questionaire):
         tokens = result.split('/')
@@ -532,7 +563,7 @@ class Result:
                           line_number, questionaire)
 
 
-    def load_results(self, file_input, teams, students, questionaire, solution_document):
+    def load_results(self, file_input, students, teams, questionaire, solution_document):
         lines = file_input.readlines()
         file_input.close()
         tell('Reading results file.')
@@ -545,11 +576,6 @@ class Result:
         unique_ids = []
         for line in lines:
             line_number = line_number + 1
-            # remove all whitespace and transform to lower case
-            line = line.strip().lower().replace(' ', '')
-            if not line:
-                # ignore empty lines
-                continue
             if state == 'initial':
                 if line.startswith('---'): # yaml preamble start
                     state = 'preamble'
@@ -557,13 +583,17 @@ class Result:
                     return 2, 'Error in line {}: The file needs a Yaml preamble, starting with ---.'.format(linenumber)
             elif state == 'preamble':
                 if line.startswith('---'): # yaml preamble end
-                    yamlpreamble = yaml.load('\n'.join(preamble))
-                    print(yamlpreamble)
+                    preamble = yaml.load('\n'.join(preamble))
                     # assign table to object
                     state = 'results'
                 else:
                     preamble.append(line)
             elif state == 'results':
+                # remove all whitespace and transform to lower case
+                line = line.strip().lower().replace(' ', '')
+                if not line:
+                    # ignore empty lines
+                    continue
                 if line.startswith('#'):
                     # ignore, it's a comment
                     pass
@@ -575,27 +605,25 @@ class Result:
                              tell('Line {}: A line with the id {} already exists.'.format(result_line.line_number, result_line.result_id), 'warn')
                         else:
                             unique_ids.append(result_line.result_id)
-        print(type(yamlpreamble))
-        print(' --- {}'.format(state) )
         # finished parsing the file
 
         if state is not 'results':
             tell('The results file is not complete.', 'error')
 
         # check the preamble
-        if 'name' not in yamlpreamble:
+        if 'name' not in preamble:
             tell('The results file should contain a name field in the preamble.', 'warn')
         else:
-            self.name = yamlpreamble['name']
-        if 'date' not in yamlpreamble:
+            self.name = preamble['name']
+        if 'date' not in preamble:
             tell('The results file should contain a date field in the preamble.', 'warn')
         else:
-            self.date = yamlpreamble['date']
+            self.date = preamble['date']
 
         for result_line in result_lines:
             # check that student or team with matching id exists
             if students.exists(result_line.result_id): # found student
-                student_results[result_line.result_id] = result_line
+                self.student_results[result_line.result_id] = result_line
                 result_line.type = 'student'
                 solution = solution_document.get_student_solution(result_line.result_id)
                 if solution is None:
@@ -603,7 +631,7 @@ class Result:
                 else:
                     result_line.solution = solution
             elif teams.exists(result_line.result_id): # found team
-                team_results[result_line.result_id] = result_line
+                self.team_results[result_line.result_id] = result_line
                 result_line.type = 'team'
                 solution = solution_document.get_team_solution(result_line.result_id)
                 if solution is None:
