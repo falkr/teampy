@@ -22,11 +22,15 @@ rat01.results:
 The individual results are listed with the student id, the results and the check
 sum. The team results are listed with the id of the team, the results, and a simplified check sum that is better suited for the scratch cards.
 
+* Empty lines are ignored, so you can use empty lines to group entries if you like.
+* Capitalization is ignored, all entries (student and team ids, results) are converted into lowercase when the file is read in.
+* Whitespace within a line is also removed.
+* All results need to have the proper length. That means, if the RAT has 10 questions, then all result string need to be 10 letters long. If a student did not answer a question, write an `x` for that letter instead.
+* If a team uses scratch cards and opens more than one scratch field, write the first wrong answer they selected in the sequence.
 
+Run Teampy with the following command:
 
-
-    rat rate
+    rat grade results.txt
 
 We assume here that you are in the directory of the RAT, and that `questions.md` is the name of your RAT file.
-
-The `rat check` command does not require that your students file exists. The RAT is printed
+Teampy will create an Excel file with the grades for each student.

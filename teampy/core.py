@@ -141,8 +141,6 @@ class Teams:
         return self.df.index.values
 
     def exists(self, team_id):
-        print(self.df.index.values)
-        print(type(team_id))
         return team_id in self.df.index.values
 
 
@@ -461,22 +459,27 @@ class SolutionDocument:
             #yaml.dump(self.solutions, outfile, default_flow_style=False)
 
     def load(self, filename, students, teams):
-        #df = pd.read_excel(filename)
-        #for index, row in df.iterrows():
-        #    self.solutions[row['id']] = Solution.create_solution_from_string(row['id'], row['solution'])
-        rawcodes = yaml.load(open(filename, 'r', encoding='latin-1'))
-        print('loading solutions document')
-        for key in rawcodes:
-            key = str(key) #yaml can read it as int
-            print(type(key))
-            print(key)
-            if teams.exists(key):
-                self.team_solutions[key] = Solution.create_solution_from_string(rawcodes[key])
-            elif students.exists(key):
-                self.student_solutions[key] = Solution.create_solution_from_string(rawcodes[key])
-            else:
-                print('does not exist {}'.format(key))
-                print(type(key))
+        with open(filename, 'r', encoding='latin-1') as file:
+            lines = file.readlines()
+            line_number = 0
+            for line in lines:
+                line_number += 1
+                line = line.strip()
+                if not line:
+                    continue
+                elements = line.split(':')
+                if len(elements) != 2:
+                    tell('Invalid entry in line {} of the file {}.'.format(line_number, filename))
+                else:
+                    key = elements[0].strip()
+                    rawcode = elements[1].strip()
+                    if teams.exists(key):
+                        self.team_solutions[key] = Solution.create_solution_from_string(rawcode)
+                    elif students.exists(key):
+                        self.student_solutions[key] = Solution.create_solution_from_string(rawcode)
+                    else:
+                        tell('Entry for id {} in line {} does not correspond to a team or student.'.format(key, line_number))
+        tell('Reading solutions file')
 
     def printx(self):
         for key, solution in self.solutions.items():
@@ -494,6 +497,7 @@ class ResultLine:
         # will be set later:
         self.solution = None
         self.type = None # 'student' or 'team'
+        self.valid = False
 
     def check(self):
         # check that result has proper length
@@ -525,6 +529,7 @@ class ResultLine:
 
         if self.solution is None:
             return
+        self.valid = True
 
         # unshuffle the questions, bring back into original question sequence
         normalized_results = {} #= np.arange(self.questionaire.number_of_questions())
@@ -537,18 +542,31 @@ class ResultLine:
             hops = ord('a') - ord(answer_key)
             answer_given = np.roll(array, -hops)[answer_given_ord]
             normalized_results[int(question)] = answer_given
+        correct_answers = 0
+        for c in normalized_results.values():
+            if c == 'a':
+                correct_answers += 1
+        self.score =  100 * correct_answers / len(normalized_results)
 
-        print('--Results for {}'.format(self.result_id))
-        print('              {}'.format(self.result))
-        print('              {}'.format(self.solution.to_string()))
-        print('              {}'.format(normalized_results))
+        #print('--Results for {}'.format(self.result_id))
+        #print('              {}'.format(self.result))
+        #print('              {}'.format(self.solution.to_string()))
+        #print('              {}'.format(normalized_results))
+        #print('       score: {}'.format(self.score))
+
+
 
         # TODO also count what was the most popular answer
 
 
+
 class Result:
 
-    def __init__(self):
+    def __init__(self, students, teams, questionaire, solution_document):
+        self.students = students
+        self.teams = teams
+        self.questionaire = questionaire
+        self.solution_document = solution_document
         self.student_results = {}
         self.team_results = {}
 
@@ -563,7 +581,7 @@ class Result:
                           line_number, questionaire)
 
 
-    def load_results(self, file_input, students, teams, questionaire, solution_document):
+    def load_results(self, file_input):
         lines = file_input.readlines()
         file_input.close()
         tell('Reading results file.')
@@ -598,7 +616,7 @@ class Result:
                     # ignore, it's a comment
                     pass
                 else:
-                    result_line = self._parse_result_line(line, line_number, questionaire)
+                    result_line = self._parse_result_line(line, line_number, self.questionaire)
                     if result_line is not None:
                         result_lines.append(result_line)
                         if result_line.result_id in unique_ids:
@@ -622,18 +640,18 @@ class Result:
 
         for result_line in result_lines:
             # check that student or team with matching id exists
-            if students.exists(result_line.result_id): # found student
+            if self.students.exists(result_line.result_id): # found student
                 self.student_results[result_line.result_id] = result_line
                 result_line.type = 'student'
-                solution = solution_document.get_student_solution(result_line.result_id)
+                solution = self.solution_document.get_student_solution(result_line.result_id)
                 if solution is None:
                      tell('Line {}: There exists no solution for student with id {}.'.format(result_line.line_number, result_line.result_id), 'error')
                 else:
                     result_line.solution = solution
-            elif teams.exists(result_line.result_id): # found team
+            elif self.teams.exists(result_line.result_id): # found team
                 self.team_results[result_line.result_id] = result_line
                 result_line.type = 'team'
-                solution = solution_document.get_team_solution(result_line.result_id)
+                solution = self.solution_document.get_team_solution(result_line.result_id)
                 if solution is None:
                      tell('Line {}: There exists no solution for team with id {}.'.format(result_line.line_number, result_line.result_id), 'error')
                 else:
@@ -641,6 +659,24 @@ class Result:
             else:
                 tell('Line {}: There exists no student or team with id {}.'.format(result_line.line_number, result_line.result_id), 'warn')
             result_line.check()
+
+    def store_results(self, filename):
+        result_table = []
+        for student_id, result_line in self.student_results.items():
+            if result_line.valid:
+                team_id = self.students.get_team(student_id)
+                if team_id in self.team_results:
+                    team_result = self.team_results[team_id]
+                    team_score = team_result.score
+                else:
+                    team_score = None
+                result_table.append({'id': student_id,
+                                     'irat': result_line.score,
+                                     'trat': team_score})
+        result_table = pd.DataFrame(result_table)
+        result_table.to_excel(filename)
+        tell('Stored results in file {}'.format(filename))
+
 
 
 class Teampy:

@@ -97,6 +97,10 @@ def rat_check(file_input, file_path):
     latex = questionaire.write_latex()
     write_latex(latex, file_path)
 
+def parallel_file_path(file_path, alternative_extension):
+    head, tail = os.path.split(file_path)
+    tail_base = tail.split('.')[0]
+    return os.path.join(os.path.dirname(file_path), '{}.{}'.format(tail_base, alternative_extension))
 
 def rat_print(file_input, file_path, team_solution):
     """
@@ -122,11 +126,7 @@ def rat_print(file_input, file_path, team_solution):
     # create a solution file
     sd = SolutionDocument()
     sd.create_solution_document(t.teams, t.students, questionaire, team_solution)
-
-    head, tail = os.path.split(file_path)
-    tail_base = tail.split('.')[0]
-
-    solutions_file_path = os.path.join(os.path.dirname(file_path), '{}.solutions'.format(tail_base))
+    solutions_file_path = parallel_file_path(file_path, 'solutions')
     sd.store(solutions_file_path)
     tell('Write solutions into file {}.'.format(solutions_file_path))
 
@@ -153,9 +153,11 @@ def rat_grade(file_input, file_path):
     solutions = SolutionDocument()
     solutions.load(rat.solutions_file, teampy.students, teampy.teams)
 
-    result = Result()
-    result.load_results(file_input, teampy.students, teampy.teams, questionaire, solutions)
+    result = Result(teampy.students, teampy.teams, questionaire, solutions)
+    result.load_results(file_input)
 
+    results_file_path = parallel_file_path(file_path, 'xlsx')
+    result.store_results(results_file_path)
 
 @click.group()
 @click.version_option(teampy.__version__)

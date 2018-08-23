@@ -48,7 +48,7 @@ the pip command, make sure the Python installer added them to the path.
 
 * [Write RATs](write-rats.html)
 * [Print RATs](print-rats.html)
-* Evaluate RATs
+* [Grade RATs](grade-rats.html)
 * Send Feedback to students
 
 ### At the End of the Semester
