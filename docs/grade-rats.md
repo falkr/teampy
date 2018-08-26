@@ -40,4 +40,22 @@ Teampy will create an Excel file with the grades for each student.
 
 Often, there is more than one instant in time when students do the RAT.
 You can cover this by creating different result files, each one only including
-results for a subset of students.  
+results for a subset of students.
+
+## Statistics
+
+Teampy prints an overview of the questions and answers given.
+It shows questions and answer alternatives in the sequence you wrote them in the
+questions.txt file, so that 'A' is the best answer alternative.
+
+    Q1: What defines a fruit?
+    A: ████████████████████████████████████████████████████████████████████████████████████████████████████ 87.3
+    B: ██████████ 9.5
+    C:  0.0
+    D: ███ 3.2
+
+    Q2: Which of the is not a fruit?
+    A: ███████████████████████████████████████████████████████████████████████ 61.9
+    B: ███████ 6.3
+    C: ████████████████ 14.3
+    D: ████████████████████ 17.5
