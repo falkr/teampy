@@ -22,7 +22,9 @@
 
         <p>{{ site.description | default: site.github.project_tagline }}</p>
 
+        <nav>
         <p class="view">
+          <h2 id="usage"><a href="install.html">Installation</a></h2>
           <h2 id="usage">Usage</h2>
             <h3 id="at-semester-start">At Semester Start</h3>
             <ul>
@@ -41,9 +43,8 @@
               <ul>
                 <li><del>Summarize RAT results</del></li>
               </ul>
-
-
         </p>
+      </nav>
 
         {% if site.github.is_project_page %}
         <p class="view"><a href="{{ site.github.repository_url }}">View the Project on GitHub <small>{{ site.github.repository_nwo }}</small></a></p>
