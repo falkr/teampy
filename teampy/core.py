@@ -532,7 +532,7 @@ class ResultLine:
         self.valid = True
 
         # unshuffle the questions, bring back into original question sequence
-        normalized_results = {} #= np.arange(self.questionaire.number_of_questions())
+        self.normalized_results = {} #= np.arange(self.questionaire.number_of_questions())
         for index, question in enumerate(self.solution.questions):
             answer_given = self.result[index]
             answer_given_ord = ord(answer_given) - ord('a') # 0, 1, 2,...
@@ -541,23 +541,18 @@ class ResultLine:
             array = np.asarray(['a', 'b', 'c', 'd'])
             hops = ord('a') - ord(answer_key)
             answer_given = np.roll(array, -hops)[answer_given_ord]
-            normalized_results[int(question)] = answer_given
+            self.normalized_results[int(question)] = answer_given
         correct_answers = 0
-        for c in normalized_results.values():
+        for c in self.normalized_results.values():
             if c == 'a':
                 correct_answers += 1
-        self.score =  100 * correct_answers / len(normalized_results)
+        self.score =  100 * correct_answers / len(self.normalized_results)
 
         #print('--Results for {}'.format(self.result_id))
         #print('              {}'.format(self.result))
         #print('              {}'.format(self.solution.to_string()))
         #print('              {}'.format(normalized_results))
         #print('       score: {}'.format(self.score))
-
-
-
-        # TODO also count what was the most popular answer
-
 
 
 class Result:
@@ -676,6 +671,47 @@ class Result:
         result_table = pd.DataFrame(result_table)
         result_table.to_excel(filename)
         tell('Stored results in file {}'.format(filename))
+
+    def stats(self):
+
+        def aggregate_results(results):
+            df = pd.DataFrame(index=range(1,11), columns=['a','b','c','d'])
+            df = df.fillna(0)
+            for result in results:
+                if result.valid:
+                    for question in range(1,11):
+                        answer = result.normalized_results[question]
+                        df.loc[question, answer] += 1
+            return df
+
+        df_i = aggregate_results(self.student_results.values())
+        df_t = aggregate_results(self.team_results.values())
+
+        def truncate(data, max):
+            return data[:max] + (data[max:] and '...')
+
+        def print_question(number, text, scores, terminal_width):
+            bar_width = terminal_width - 10
+            fill = '█'
+            padd = ''
+            print('')
+            print(Style.BRIGHT + '     Q{}:'.format(number) + Style.BRIGHT + ' {}'.format( truncate(text, bar_width-10)))
+
+            print('  ' + Style.NORMAL + 'A: ' + fill * int(scores[0] * bar_width / 100) + ' {0:.1f}'.format(scores[0]))
+            for i in range(1,len(scores)):
+                print('  ' + Style.DIM + '{}: '.format( chr(65+i)) + fill * int(scores[i] * bar_width / 100) + ' {0:.1f}'.format(scores[i]))
+
+        terminal_width = 125
+        for index, row in df_i.iterrows():
+            # row is a Series
+            scores = row.copy() * 100 / row.sum()
+            preview = self.questionaire.questions[int(index)-1].question
+            print_question(index, preview, scores, terminal_width)
+
+
+
+
+
 
 
 

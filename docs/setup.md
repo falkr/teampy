@@ -10,11 +10,9 @@ Teampy expects the following file and folder structure:
     - **teams.xlsx**
     - **scratchcards.txt**
     - rat-01/
-        - **rat01.md**
-        - solutions.xlsx
-        - results1.txt
-        - results1.xlsx
-        - results2.xlsx
+        - **questions.txt**
+        - solutions.teampy
+        - **results-1.txt**
         - receipts/
             - aa1.pdf
             - aa2.pdf
@@ -28,12 +26,10 @@ An example would be `ttm4115-2018`.
 
 The students file is an Excel file with the name `students.xlsx` with a table that has the following columns:
 
-* id
-* email
-* lastname
-* firstname
-* team
-* table
+|  id | email | lastname | firstname | team | table |
+| --- | ----- | -------- | --------- | ---- | ----- |
+| ab1 | a@example.org | Berg | Anna  | 14   |     7 |
+| ... | ...   | ...      | ...       | ...  | ...   |
 
 The id for a student should be a short, unique identifier.
 It must not be the same as the identifier for a team.

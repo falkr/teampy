@@ -61,11 +61,9 @@ The RAT files should be stored in their own folder, so that Teampy creates other
     - **teams.xlsx**
     - **scratchcards.txt**
     - rat-01/
-        - **questions.md**
-        - solutions.xlsx
-        - results1.txt
-        - results1.xlsx
-        - results2.xlsx
+        - **questions.txt**
+        - solutions.teampy
+        - results-1.txt
         - receipts/
             - aa1.pdf
             - aa2.pdf
@@ -86,5 +84,5 @@ To do so, run the following command in the command line:
     rat check questions.md
 
 We assume here that you are in the directory of the RAT, and that `questions.md` is the name of your RAT file.
-The `rat check` command does not require that your students file exists, and it does not require you to select a scratch card for the solution. 
+The `rat check` command does not require that your students file exists, and it does not require you to select a scratch card for the solution.
 It just creates a LaTeX file with the questions in their original order and with the correct answer sorted first.

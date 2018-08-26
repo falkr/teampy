@@ -158,6 +158,7 @@ def rat_grade(file_input, file_path):
 
     results_file_path = parallel_file_path(file_path, 'xlsx')
     result.store_results(results_file_path)
+    result.stats()
 
 @click.group()
 @click.version_option(teampy.__version__)

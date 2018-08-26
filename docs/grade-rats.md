@@ -6,7 +6,7 @@
 To rate the RATs, you need to prepare a file that lists all the individual and the
 team results.
 
-rat01.results:
+File `results.txt`:
 
     ---
     name: RAT1
@@ -34,3 +34,10 @@ Run Teampy with the following command:
 
 We assume here that you are in the directory of the RAT, and that `questions.md` is the name of your RAT file.
 Teampy will create an Excel file with the grades for each student.
+
+
+## Several RAT Sessions
+
+Often, there is more than one instant in time when students do the RAT.
+You can cover this by creating different result files, each one only including
+results for a subset of students.  
