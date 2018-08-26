@@ -22,6 +22,29 @@
 
         <p>{{ site.description | default: site.github.project_tagline }}</p>
 
+        <p class="view">
+          <h2 id="usage">Usage</h2>
+            <h3 id="at-semester-start">At Semester Start</h3>
+            <ul>
+              <li><a href="setup.html">Course Setup</a></li>
+              <li><del>Assign Student IDs</del> (not supported yet)</li>
+              <li><del>Shuffle Teams</del> (not supported yet)</li>
+            </ul>
+            <h3 id="during-the-semester">During the Semester</h3>
+            <ul>
+              <li><a href="write-rats.html">Write RATs</a></li>
+              <li><a href="print-rats.html">Print RATs</a></li>
+              <li><a href="grade-rats.html">Grade RATs</a></li>
+              <li><del>Send Feedback to students</del></li>
+            </ul>
+            <h3 id="at-the-end-of-the-semester">At the End of the Semester</h3>
+              <ul>
+                <li><del>Summarize RAT results</del></li>
+              </ul>
+
+
+        </p>
+
         {% if site.github.is_project_page %}
         <p class="view"><a href="{{ site.github.repository_url }}">View the Project on GitHub <small>{{ site.github.repository_nwo }}</small></a></p>
         {% endif %}
@@ -30,7 +53,7 @@
         <p class="view"><a href="{{ site.github.owner_url }}">View My GitHub Profile</a></p>
         {% endif %}
 
-        <p class="view">Overview</p>
+
 
         {% if site.show_downloads %}
         <ul class="downloads">
