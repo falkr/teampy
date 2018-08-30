@@ -163,7 +163,8 @@ class Question:
         answers.extend(self.fake)
         # now roll so that the true answer is at position of the key
         array = np.asarray(answers)
-        hops = ord('a') - ord(key)
+        hops = ord(key) - ord('a')
+        print('hops: {}'.format(hops))
         return np.roll(array, hops).tolist()
 
     def write_latex(self, number, key):
@@ -180,6 +181,18 @@ class Question:
             lines.append('\\item {}\n'.format(answer))
         lines.append('\\end{enumerate}\n')
         return "".join(lines)
+
+def test():
+    q = Question([], None, 3)
+    q.set_true('True answer.')
+    q.add_fake('Fake answer (b)')
+    q.add_fake('Fake answer (c)')
+    q.add_fake('Fake answer (d)')
+    for key in ['a','b','c','d']:
+        print('---key {}'.format(key))
+        for answer in q.get_rolled_answers(key):
+            print(answer)
+
 
 
 class Questionaire:
@@ -711,7 +724,8 @@ class Result:
 
 
 
-
+#if __name__ == '__main__':
+#    test()
 
 
 
