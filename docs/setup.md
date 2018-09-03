@@ -9,10 +9,12 @@ Teampy expects the following file and folder structure:
     - **students.xlsx**
     - **teams.xlsx**
     - **scratchcards.txt**
+    - **smtp.txt**
     - rat-01/
         - **questions.txt**
         - solutions.teampy
         - **results-1.txt**
+        - **results-1.xlsx**
         - receipts/
             - aa1.pdf
             - aa2.pdf
@@ -48,10 +50,16 @@ They can be sorted according to the table and distributing them is fast and simp
 
 The teams file is an Excel file with the name `teams.xlsx` with the following columns:
 
-* id
-* name
+|  id | name   |  pt | 
+| --- | ------ | --- | 
+|  14 | A-Team |  30 | 
+| ... |  ...   | ... | 
 
-The ids are the same ids that are used in the students file to assign a student to a team.
+- The **ids** are the same ids that are used in the students file to assign a student to a team.
+- The **names** can be the team names that students selected for their team. They have no technical significance, but Teampy can show them for instance in emails. 
+- The **pt** column determines for each team how much the team RAT should count to the total score. You can decide on your own if you give teams the choice for this, or if you assign the same percentage to each team. In the example above, the team rat counts 30% to the total RAT score, the remaining 70% are the individual RAT score. In case you assign the same percentage to all teams, just write 
+the same value into the rows for all teams.
+
 The teams file is optional.
 
 ## Scratch Cards File
@@ -72,4 +80,23 @@ The name of the file must be `scratchcards.txt'.
 
 ## Readiness Assurance Tests (RATs)
 
-Each RAT is stored in a separate folder, containing several files for each of them.  
+Each RAT is stored in a separate folder, containing several files for each of them. 
+
+
+## SMTP Settings
+
+If you want to send the results of each RAT to your students, you need to configure 
+a file with the SMTP settings of your email server. 
+You can check the settings of your local email client (if it uses SMTP), or contact your IT support.
+
+The file should look like this, obviously with the values changed to your settings:
+
+    from: kraemer@ntnu.no
+    smtp: smtp.ansatt.ntnu.no
+    port: 587
+
+
+## Backups
+
+Teampy is written to be careful with your data. It distinguishes between files that are written by you, and files it generates. Still, backing up data is good practice anyway. 
+Please always keep regular backups of your data. The files Teampy uses are relatively small even for large courses, so that you also can keep several backups over time.

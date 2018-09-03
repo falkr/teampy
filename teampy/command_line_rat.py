@@ -1,11 +1,18 @@
 import os
 import teampy
+import pandas as pd
 from teampy import Questionaire, SolutionDocument, Students, Teams, Solution, Result, Teampy, RATContext, tell
 from colorama import init, Fore, Style
-
-
 import click
 import shutil
+import time
+
+# sending email
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+import smtplib
+from smtplib import SMTPHeloError, SMTPRecipientsRefused, SMTPNotSupportedError, SMTPAuthenticationError, SMTPSenderRefused, SMTPDataError, SMTPException
+import getpass
 
 def print_teampy():
     print('')
@@ -160,6 +167,112 @@ def rat_grade(file_input, file_path):
     result.store_results(results_file_path)
     result.stats()
 
+def create_message(student_id, row, result, teampy):
+    msg = MIMEMultipart()
+    msg['From'] = teampy.smtp_settings['from']
+    msg['To'] = 'kraemer.frank@gmail.com' # row['email']
+    # TODO here the course code would be nice to have
+    msg['Subject'] = 'RAT Feedback'
+    html = """\
+<html>
+  <head></head>
+  <body>
+    <p>Hi {}!</p>
+    <p>Here are the results form the latest RAT:</p>
+    <table>
+      <tr><td>Name:</td><td>{} {}</td><tr>
+      <tr><td>ID:</td><td><code>{}</code></td><tr>
+      <tr><td>Team:</td><td><code>{}</code></td><tr>
+      <tr><td>RAT:</td><td><code>{}</code></td><tr>
+      <tr><td>Date:</td><td><code>{}</code></td><tr>
+""".format(row['firstname'], row['firstname'], row['lastname'], student_id, row['team'], result.name, result.date)
+    html = html + """\
+      <tr><td>Individual Answer:&nbsp;</td><td><code>{}</code></td><tr>
+      <tr><td>Correct Solution:</td><td><code>{}</code></td><tr>
+      <tr><td>Individual Score:</td><td><code>{}</code> &nbsp; <emph>(counts {}%)</emph></td><tr>
+""".format(row['answer_i'], row['correct_i'], row['irat'], row['pi'])
+    if row['trat'] is not None: # TODO check what a non-value in Excel looks like here
+        html = html + """\
+      <tr><td>Team Answer:</td><td><code>{}</code></td><tr>
+      <tr><td>Correct Solution:</td><td><code>{}</code></td><tr>
+      <tr><td>Team Score:</td><td><code>{}</code> &nbsp; <emph>(counts {}%)</emph></td><tr>
+""".format(row['answer_t'], row['correct_t'], row['trat'], row['pt'])
+    html = html + """\
+      <tr><td>Final Score for this RAT:</td><td><b>{}</b></td><tr>
+    </table>
+    <p>This mail was automated, but you can reply to it.</p>
+  </body>
+</html>
+""".format(row['score'])
+    msg.attach(MIMEText(html, 'html'))
+    return msg    
+
+
+def rat_email(file_input, file_path):
+    """
+    Send the results of a RAT to students via email.
+    """
+    teampy = Teampy()
+    
+    if teampy.smtp_settings is None:
+        tell('Your SMTP settings are not complete. Please check.', 'error')
+        return
+    
+    # TODO give RAT context the directory relative to the file_input
+    rat = RATContext(teampy)
+    # read in the questionaire
+    questionaire = _load_rat_file(click.open_file(rat.questionaire_file, encoding='latin-1'))
+    if questionaire is None:
+        tell('Could not read questions. Aborting.', 'error')
+        return
+    # read in the solutions file
+    solutions = SolutionDocument()
+    solutions.load(rat.solutions_file, teampy.students, teampy.teams)
+
+    # read in the corresponding result file
+    results_file_path = parallel_file_path(file_path, 'txt')
+    result = Result(teampy.students, teampy.teams, questionaire, solutions)
+    result.load_results(click.open_file(results_file_path, encoding='latin-1'))
+
+    # read in the graded file
+    df = pd.read_excel(file_path, dtype={'id': str, 'team': str, 'table':str})
+    # TODO check that table is consistent
+    # TODO abort if there is nothing to send
+    # TODO check if all email adresses are valid
+
+
+    # connect to SMTP server
+    print('Password for the user {} on server {}.'.format(teampy.smtp_settings['from'], teampy.smtp_settings['smtp']))
+    password = getpass.getpass()
+
+    #create server
+    server = smtplib.SMTP('{}: {}'.format(teampy.smtp_settings['smtp'], teampy.smtp_settings['port']))
+    try:
+        server.starttls()
+        # Login Credentials for sending the mail
+        server.login(teampy.smtp_settings['from'], password)
+
+        # send email
+        for student_id, row in df.iterrows():
+            # TODO check if we need to send email to this student
+            msg = create_message(student_id, row, result, teampy)
+            try:
+                server.send_message(msg)
+                time.sleep(0.5)
+                print('send message!')
+            except (SMTPHeloError, SMTPRecipientsRefused, SMTPNotSupportedError, SMTPSenderRefused, SMTPDataError) as e:
+                tell('There was an error sending a mail to {}.'.format(row['email']))
+                print(e)
+
+    except (SMTPHeloError, SMTPAuthenticationError, SMTPNotSupportedError, SMTPException) as e:
+        tell('There was an error connecting to the SMTP server {}'.format(teampy.smtp_settings['smtp']))
+    
+    server.quit()
+
+
+
+
+
 @click.group()
 @click.version_option(teampy.__version__)
 def rat():
@@ -223,6 +336,15 @@ def grade(file):
     """
     print_teampy()
     rat_grade(click.open_file(file, encoding='latin-1'), file)
+
+@rat.command()
+@click.argument('file', type=click.Path(exists=True))
+def email(file):
+    """
+    Send feedback to students via email.
+    """
+    print_teampy()
+    rat_email(click.open_file(file, encoding='latin-1'), file)
 
 if __name__ == "__main__":
     rat()

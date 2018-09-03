@@ -79,9 +79,21 @@ class Students:
         student = self.df.loc[student_id]
         return '{} {}'.format(student['firstname'], student['lastname'])
 
+    def get_firstname(self, student_id):
+        student = self.df.loc[student_id]
+        return student['firstname']
+
+    def get_lastname(self, student_id):
+        student = self.df.loc[student_id]
+        return student['lastname']
+
+    def get_email(self, student_id):
+        student = self.df.loc[student_id]
+        return student['email']
+
     def get_team(self, student_id):
         student = self.df.loc[student_id]
-        return student['team']
+        return str(student['team'])
 
     def get_team_ids(self):
         return self.df['team'].unique()
@@ -126,7 +138,9 @@ class Teams:
     def from_excel(filename):
         teams = Teams()
         teams.df = pd.read_excel(filename)
+        teams.df['id'] = teams.df['id'].apply(str)
         teams.df = teams.df.set_index('id')
+        # TODO check that all teams referred to by students file are in here
         return teams
 
     def from_students(students):
@@ -142,6 +156,13 @@ class Teams:
 
     def exists(self, team_id):
         return team_id in self.df.index.values
+
+    def get_rat_precentage(self, team_id):
+        team = self.df.loc[team_id]
+        if 'pt' in team:
+            return team['pt']
+        else: 
+            return 0
 
 
 class Question:
@@ -164,7 +185,6 @@ class Question:
         # now roll so that the true answer is at position of the key
         array = np.asarray(answers)
         hops = ord(key) - ord('a')
-        print('hops: {}'.format(hops))
         return np.roll(array, hops).tolist()
 
     def write_latex(self, number, key):
@@ -407,6 +427,9 @@ class Solution:
             s += str(q) + a + ' '
         return s.strip()
 
+    def get_correct_answers_string(self):
+        return "".join(self.answers)
+
     def roll(answers, key):
         """
         Shift a list of answers according to the key.
@@ -588,7 +611,6 @@ class Result:
                           tokens[2].strip(),
                           line_number, questionaire)
 
-
     def load_results(self, file_input):
         lines = file_input.readlines()
         file_input.close()
@@ -673,15 +695,37 @@ class Result:
         for student_id, result_line in self.student_results.items():
             if result_line.valid:
                 team_id = self.students.get_team(student_id)
+                team_percent = self.teams.get_rat_precentage(team_id)
                 if team_id in self.team_results:
                     team_result = self.team_results[team_id]
                     team_score = team_result.score
+                    answer_t = team_result.result
+                    correct_t = self.solution_document.get_team_solution(team_id).get_correct_answers_string()
+                    total_score = (team_percent * team_result.score + (100 - team_percent) * result_line.score) / 100
                 else:
                     team_score = None
+                    answer_t = None
+                    correct_t = None
+                    total_score = result_line.score
                 result_table.append({'id': student_id,
+                                     'firstname': self.students.get_firstname(student_id),
+                                     'lastname': self.students.get_lastname(student_id),
+                                     'email': self.students.get_email(student_id),
+                                     'team': team_id,
+                                     'answer_i': result_line.result,
+                                     'correct_i': result_line.solution.get_correct_answers_string(),
+                                     'answer_t': answer_t,
+                                     'correct_t': correct_t,
                                      'irat': result_line.score,
-                                     'trat': team_score})
+                                     'pi': 100 - team_percent,
+                                     'trat': team_score,
+                                     'pt': team_percent,
+                                     'score': total_score,
+                                     'comment': ''})
+        columns = ['id', 'email', 'lastname', 'firstname', 'team', 'answer_i','correct_i', 'answer_t', 'correct_t', 'irat', 'pi', 'trat', 'pt', 'score', 'comment']
         result_table = pd.DataFrame(result_table)
+        result_table = result_table.reindex(columns, axis=1)
+        result_table = result_table.set_index('id')
         result_table.to_excel(filename)
         tell('Stored results in file {}'.format(filename))
 
@@ -714,6 +758,7 @@ class Result:
             for i in range(1,len(scores)):
                 print('  ' + Style.DIM + '{}: '.format( chr(65+i)) + fill * int(scores[i] * bar_width / 100) + ' {0:.1f}'.format(scores[i]))
 
+        # TODO get terminal width
         terminal_width = 125
         for index, row in df_i.iterrows():
             # row is a Series
@@ -744,6 +789,20 @@ class Teampy:
             codes[key] = Solution.create_solution_from_string(rawcodes[key], card_id=key)
         return codes
 
+    def load_smtp_settings(self, filename):
+        settings = yaml.load(open(filename, 'r', encoding='latin-1'))
+        if 'from' not in settings:
+            tell('The smtp settings need to include attribute "from" with your email.', 'error')
+            # TODO check if 'from' is a valid email, at least syntactically
+            return None
+        if 'smtp' not in settings:
+            tell('The smtp settings need to include attribute "smtp" with the address of your SMTP server.', 'error')
+            return None
+        if 'port' not in settings:
+            tell('The smtp settings need to include attribute "port" with the port number of your SMTP server.', 'error')
+            return None
+        return settings
+
     def find_main_directory(self):
         # look in the current working directory
         dirs = [os.getcwd(), os.path.dirname(os.getcwd())]
@@ -773,6 +832,12 @@ class Teampy:
         if os.path.isfile(scratchcards_file):
             tell('Reading the scratchcards file.')
             self.scratchcards = self.load_scratch_cards(scratchcards_file)
+
+        self.smtp_settings = None
+        smtp_settings_file = os.path.join(directory, 'smtp.txt')
+        if os.path.isfile(smtp_settings_file):
+            tell('Reading the smtp settings file.')
+            self.smtp_settings = self.load_smtp_settings(smtp_settings_file)
 
 
 class RATContext:
