@@ -170,7 +170,7 @@ def rat_grade(file_input, file_path):
 def create_message(student_id, row, result, teampy):
     msg = MIMEMultipart()
     msg['From'] = teampy.smtp_settings['from']
-    msg['To'] = 'kraemer.frank@gmail.com' # row['email']
+    msg['To'] = row['email']
     # TODO here the course code would be nice to have
     msg['Subject'] = 'RAT Feedback'
     html = """\
@@ -235,18 +235,21 @@ def rat_email(file_input, file_path):
     result.load_results(click.open_file(results_file_path, encoding='latin-1'))
 
     # read in the graded file
-    df = pd.read_excel(file_path, dtype={'id': str, 'team': str, 'table':str})
+    df = pd.read_excel(file_path, dtype={'id': str, 'team': str, 'email':str, 'comment':str, 'feedback':str})
+    # TODO set the id as index
+
     # TODO check that table is consistent
     # TODO abort if there is nothing to send
     # TODO check if all email adresses are valid
 
 
     # connect to SMTP server
-    print('Password for the user {} on server {}.'.format(teampy.smtp_settings['from'], teampy.smtp_settings['smtp']))
-    password = getpass.getpass()
+    print('\n')
+    password = getpass.getpass(prompt='Password for the user {} on server {}: '.format(teampy.smtp_settings['from'], teampy.smtp_settings['smtp']))
 
     #create server
     server = smtplib.SMTP('{}: {}'.format(teampy.smtp_settings['smtp'], teampy.smtp_settings['port']))
+    statuses = {}
     try:
         server.starttls()
         # Login Credentials for sending the mail
@@ -255,22 +258,32 @@ def rat_email(file_input, file_path):
         # send email
         for student_id, row in df.iterrows():
             # TODO check if we need to send email to this student
-            msg = create_message(student_id, row, result, teampy)
-            try:
-                server.send_message(msg)
-                time.sleep(0.5)
-                print('send message!')
-            except (SMTPHeloError, SMTPRecipientsRefused, SMTPNotSupportedError, SMTPSenderRefused, SMTPDataError) as e:
-                tell('There was an error sending a mail to {}.'.format(row['email']))
-                print(e)
-
+            if row['feedback'] != 'sent':
+                msg = create_message(student_id, row, result, teampy)
+                try:
+                    server.send_message(msg)
+                    print('sent to {}'.format(row['email']))
+                    time.sleep(0.1)
+                    statuses[student_id] = 'sent'
+                except (SMTPHeloError, SMTPRecipientsRefused, SMTPNotSupportedError, SMTPSenderRefused, SMTPDataError) as e:
+                    tell('There was an error sending a mail to {}.'.format(row['email']))
+                    statuses[student_id] = 'error'
+                    print(e)
+            else:
+                print('not sending to {}'.format(row['email']))
     except (SMTPHeloError, SMTPAuthenticationError, SMTPNotSupportedError, SMTPException) as e:
         tell('There was an error connecting to the SMTP server {}'.format(teampy.smtp_settings['smtp']))
-    
     server.quit()
 
-
-
+    # update the status
+    changes = False
+    for student_id, status in statuses.items():
+        df.set_value(student_id, 'feedback', status)
+        changes = True
+    if changes:
+        # TODO be prepared for that the filw is opened and warn the user
+        df.to_excel(file_path)
+        tell('Updated results file with email send status.')
 
 
 @click.group()

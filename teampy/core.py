@@ -137,8 +137,7 @@ class Teams:
 
     def from_excel(filename):
         teams = Teams()
-        teams.df = pd.read_excel(filename)
-        teams.df['id'] = teams.df['id'].apply(str)
+        teams.df = pd.read_excel(filename, dtype={'id': str, 'name': str})
         teams.df = teams.df.set_index('id')
         # TODO check that all teams referred to by students file are in here
         return teams
@@ -195,7 +194,7 @@ class Question:
         if self.figure is not None:
             lines.append('\\begin{figure}\\centering\n')
             lines.append('\includegraphics{{{}}}\n'.format(self.figure))
-            lines.append('\caption{}\end{figure}\n')
+            lines.append('\end{figure}\n')
         lines.append('\\begin{enumerate}[label=\\textbf{{\\Alph*}},labelindent=0pt, labelsep=1.5em, parsep=0.2em]\n')
         for answer in self.get_rolled_answers(key):
             lines.append('\\item {}\n'.format(answer))
@@ -721,10 +720,11 @@ class Result:
                                      'trat': team_score,
                                      'pt': team_percent,
                                      'score': total_score,
+                                     'feedback': '',
                                      'comment': ''})
-        columns = ['id', 'email', 'lastname', 'firstname', 'team', 'answer_i','correct_i', 'answer_t', 'correct_t', 'irat', 'pi', 'trat', 'pt', 'score', 'comment']
+        columns = ['id', 'email', 'lastname', 'firstname', 'team', 'answer_i','correct_i', 'answer_t', 'correct_t', 'irat', 'pi', 'trat', 'pt', 'score', 'feedback', 'comment']
         result_table = pd.DataFrame(result_table)
-        result_table = result_table.reindex(columns, axis=1)
+        result_table = result_table[columns]
         result_table = result_table.set_index('id')
         result_table.to_excel(filename)
         tell('Stored results in file {}'.format(filename))
