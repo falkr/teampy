@@ -171,7 +171,7 @@ def rat_grade(file_input, file_path):
 def create_message(student_id, row, result, teampy):
     msg = MIMEMultipart()
     msg['From'] = teampy.smtp_settings['from']
-    msg['To'] = 'kraemer.frank@gmail.com' #  row['email']
+    msg['To'] = row['email']
     # TODO here the course code would be nice to have
     msg['Subject'] = 'RAT Feedback'
     html = """\
