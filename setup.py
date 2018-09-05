@@ -4,7 +4,7 @@ setup(
   packages=['teampy'],
   version='0.1.18',
   description='Tools for Team-Based Learning',
-  install_requires=['pyyaml', 'colorama', 'click', 'numpy', 'pandas', 'xlrd', 'openpyxl'],
+  install_requires=['pyyaml', 'colorama', 'click', 'numpy', 'pandas', 'xlrd', 'openpyxl', 'progressbar2'],
   package_data={
         '': ['*.tex', '*.pdf'],
     },

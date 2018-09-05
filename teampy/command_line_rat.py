@@ -13,6 +13,7 @@ from email.mime.text import MIMEText
 import smtplib
 from smtplib import SMTPHeloError, SMTPRecipientsRefused, SMTPNotSupportedError, SMTPAuthenticationError, SMTPSenderRefused, SMTPDataError, SMTPException
 import getpass
+import progressbar
 
 def print_teampy():
     print('')
@@ -242,6 +243,17 @@ def rat_email(file_input, file_path):
     # TODO abort if there is nothing to send
     # TODO check if all email adresses are valid
 
+    # create all messages first
+    messages = {}
+    for student_id, row in df.iterrows():
+        # TODO check if we need to send email to this student
+        if row['feedback'] != 'sent':
+            messages[student_id] = create_message(student_id, row, result, teampy)
+    if len(messages)==0:
+        tell('There is nothing to send.')
+        return
+    else:
+        tell('Will send messages to {} students.'.format(len(messages)))
 
     # connect to SMTP server
     print('\n')
@@ -256,34 +268,38 @@ def rat_email(file_input, file_path):
         server.login(teampy.smtp_settings['from'], password)
 
         # send email
-        for student_id, row in df.iterrows():
-            # TODO check if we need to send email to this student
-            if row['feedback'] != 'sent':
-                msg = create_message(student_id, row, result, teampy)
-                try:
-                    server.send_message(msg)
-                    print('sent to {}'.format(row['email']))
-                    time.sleep(0.1)
-                    statuses[student_id] = 'sent'
-                except (SMTPHeloError, SMTPRecipientsRefused, SMTPNotSupportedError, SMTPSenderRefused, SMTPDataError) as e:
-                    tell('There was an error sending a mail to {}.'.format(row['email']))
-                    statuses[student_id] = 'error'
-                    print(e)
-            else:
-                print('not sending to {}'.format(row['email']))
+        bar = progressbar.ProgressBar(max_value=len(messages), widgets=[progressbar.Percentage(), progressbar.Bar()])
+        for student_id, message in messages.items():
+            try:
+                server.send_message(message)
+                time.sleep(0.1)
+                statuses[student_id] = 'sent'
+            except (SMTPHeloError, SMTPRecipientsRefused, SMTPNotSupportedError, SMTPSenderRefused, SMTPDataError) as e:
+                tell('There was an error sending a mail to {}.'.format(student_id))
+                statuses[student_id] = 'error'
+                print(e)
+            bar += 1
     except (SMTPHeloError, SMTPAuthenticationError, SMTPNotSupportedError, SMTPException) as e:
         tell('There was an error connecting to the SMTP server {}'.format(teampy.smtp_settings['smtp']))
+    bar.finish()
     server.quit()
 
     # update the status
     changes = False
     for student_id, status in statuses.items():
-        df.set_value(student_id, 'feedback', status)
+        df.at[student_id, 'feedback'] = status
         changes = True
     if changes:
-        # TODO be prepared for that the filw is opened and warn the user
-        df.to_excel(file_path)
-        tell('Updated results file with email send status.')
+        keep_trying = True
+        while keep_trying:
+            try:
+                df.to_excel(file_path)
+                tell('Updated results file with email send status.')
+                keep_trying = False
+            except PermissionError:
+                tell('Can\'t write file {}. Maybe Excel is open? Close it and press enter.'.format(file_path), 'error')
+                input("")
+
 
 
 @click.group()
