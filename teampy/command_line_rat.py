@@ -134,7 +134,7 @@ def rat_print(file_input, file_path, team_solution):
     # create a solution file
     sd = SolutionDocument()
     sd.create_solution_document(t.teams, t.students, questionaire, team_solution)
-    solutions_file_path = parallel_file_path(file_path, 'solutions')
+    solutions_file_path = os.path.join(os.path.dirname(file_path), 'solutions.teampy')
     sd.store(solutions_file_path)
     tell('Write solutions into file {}.'.format(solutions_file_path))
 
@@ -171,7 +171,7 @@ def rat_grade(file_input, file_path):
 def create_message(student_id, row, result, teampy):
     msg = MIMEMultipart()
     msg['From'] = teampy.smtp_settings['from']
-    msg['To'] = row['email']
+    msg['To'] = 'kraemer.frank@gmail.com' #  row['email']
     # TODO here the course code would be nice to have
     msg['Subject'] = 'RAT Feedback'
     html = """\
