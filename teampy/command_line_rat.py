@@ -236,7 +236,7 @@ def rat_email(file_input, file_path):
 
     # read in the graded file
     df = pd.read_excel(file_path, dtype={'id': str, 'team': str, 'email':str, 'comment':str, 'feedback':str})
-    # TODO set the id as index
+    df = df.set_index('id')
 
     # TODO check that table is consistent
     # TODO abort if there is nothing to send
