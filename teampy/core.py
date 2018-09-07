@@ -294,6 +294,24 @@ class Questionaire:
             questionaire._parse(content)
             return questionaire
 
+    def write_trial_latex(self):
+        page_break = '\\cleardoublepage\n\\newpage\n\n'
+        lines = []
+        # add latex preamble
+        # abs_file_path = os.path.join(os.path.dirname(__file__), 'resources', 'latex_preamble.tex')
+        abs_file_path = os.path.join(os.path.dirname(__file__), 'latex_preamble.tex')
+        with open (abs_file_path, "r", encoding='latin-1') as myfile:
+            preamble = myfile.read() #.replace('\n', '')
+            lines.append(preamble)
+        lines.append('\\subsubsection*{{RAT Test Run}}\n')
+        index = 0
+        for q in self.questions:
+            index += 1
+            key = random.choice(['a', 'b', 'c', 'd'])
+            lines.append(q.write_latex(index, key))
+        lines.append('\\end{document}')
+        return "".join(lines)
+
     def write_latex(self, solution_document=None, teams=None, students=None):
         page_break = '\\cleardoublepage\n\\newpage\n\n'
         lines = []

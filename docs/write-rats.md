@@ -37,6 +37,7 @@ defines the title of the RAT, like here *Fruits and Vegetables*.
 * The answer alternatives are given with the prefix `{1} true: ` resp. `{n} fake: `.
 * Within each RAT, all question must have the same number of answer alternatives.
 
+
 ## Figures
 
 A question can include a figure, using the following code:
@@ -51,6 +52,7 @@ The image should be contained in a folder `figures`, and the types can be PDF, J
 * There must always be **four** answer alternatives.
 * Text is transformed into LaTeX as it is written, i.e., Markdown or other letters are not translated.
 * A question can have **at most one figure**.
+
 
 ## Filenames
 
@@ -76,13 +78,24 @@ When you store the RAT file, your editor will use an encoding for the characters
 If you write in plain English, ASCII or UTF-8 will work fine, but if you want to use other characters,
 choose **ISO-Latin-1** or **ISO-Latin-9**.
 
+
 ## Checking RATs
 
 At any time, you can use Teampy to check the RAT file and create LaTeX from it so you can see if all works.
 To do so, run the following command in the command line:
 
-    rat check questions.md
+    rat check questions.txt
 
-We assume here that you are in the directory of the RAT, and that `questions.md` is the name of your RAT file.
+We assume here that you are in the directory of the RAT, and that `questions.txt` is the name of your RAT file.
 The `rat check` command does not require that your students file exists, and it does not require you to select a scratch card for the solution.
 It just creates a LaTeX file with the questions in their original order and with the correct answer sorted first.
+
+
+## Testing a RAT with a Colleague
+
+Usually it is a good idea to test your RAT with a colleague. For this, use the command
+
+    rat trial questions.txt
+
+The resulting file prints one copy of the RAT, but shuffles the answers randomly. 
+You can print it and test the RAT either yourself or with colleagues. 

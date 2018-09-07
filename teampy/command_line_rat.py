@@ -91,7 +91,7 @@ def rat_check(file_input, file_path):
     if questionaire is None:
         return
 
-    # does not detect 4 fake answers, or several true answers, improve parser
+    # TODO does not detect 4 fake answers, or several true answers, improve parser
     tell('The RAT has {} questions.'.format(len(questionaire.questions)))
     for question in questionaire.questions:
         fake = len(question.fake)
@@ -102,7 +102,7 @@ def rat_check(file_input, file_path):
             print(Fore.RED + 'Question {} has no true answer. The first answer alternative must be the true one.'.format(question.number) + Style.RESET_ALL)
             return
     tell('The rat looks okay.')
-    latex = questionaire.write_latex()
+    latex = questionaire.write_latex(test_solution='bcdabdabdc')
     write_latex(latex, file_path)
 
 def parallel_file_path(file_path, alternative_extension):
@@ -336,7 +336,6 @@ def new():
     # a complete example document?
 
 @rat.command()
-#@click.argument('file', type=click.File('r'))
 @click.argument('file', type=click.Path(exists=True))
 def check(file):
     """
@@ -344,6 +343,22 @@ def check(file):
     """
     print_teampy()
     rat_check(click.open_file(file, encoding='latin-1'), file)
+
+@rat.command()
+@click.argument('file', type=click.Path(exists=True))
+def trial(file):
+    """
+    Print the RAT for a trial run, for instance with a colleague.
+    Question sequence is original, but answers are shuffled.
+    """
+    print_teampy()
+    file_path = file
+    file = click.open_file(file, encoding='latin-1')
+    questionaire = _load_rat_file(file)
+    if questionaire is None:
+        return
+    latex = questionaire.write_trial_latex()
+    write_latex(latex, file_path)
 
 @rat.command(name='print')
 #@click.argument('file', type=click.File('r'))
