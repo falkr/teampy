@@ -751,9 +751,14 @@ class Result:
         lines = []
         lines.append('<html><head>\n')
         lines.append('<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">\n')
+        lines.append('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.12.1/bootstrap-table.min.css">\n')
         lines.append('</head><body>\n')
-        lines.append('<table class="table table-hover table-sm">\n')
-        lines.append('<thead class="thead-dark">\n<tr><th>ID</th><th>Firstname</th><th>Lastname</th><th>Email</th><th>Team</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th></th></thead>\n')
+        lines.append('<table class="table table-hover table-sm" data-toggle="table">\n')
+        lines.append('<thead class="thead-dark">\n<tr><th data-field="id" data-sortable="true">ID</th><th data-field="firstname" data-sortable="true">Firstname</th>')
+        lines.append('<th data-field="lastname" data-sortable="true">Lastname</th><th data-field="email" data-sortable="true">Email</th><th data-field="team" data-sortable="true">Team</th>')
+        for question in range(1,11):
+            lines.append('<th data-field="q{}" data-sortable="true">{}</th>'.format(question, question))
+        lines.append('</thead>\n')
         for student_id, result_line in self.student_results.items():
             if not result_line.valid:
                 continue    
@@ -778,7 +783,12 @@ class Result:
                 lines.append('<td>{}</td>'.format(answer))
             lines.append('</tr>\n')
         lines.append('</table>')
-        lines.append('</body></html>')
+        lines.append('</body>')
+        lines.append('<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>')
+        lines.append('<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>')
+        lines.append('<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>')
+        lines.append('<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.12.1/bootstrap-table.min.js"></script>')
+        lines.append('</html>')
         with open(filename, 'w') as file:
             file.write("".join(lines))
 
