@@ -747,6 +747,41 @@ class Result:
         result_table.to_excel(filename)
         tell('Stored results in file {}'.format(filename))
 
+    def store_results_html(self, filename):
+        lines = []
+        lines.append('<html><head>\n')
+        lines.append('<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">\n')
+        lines.append('</head><body>\n')
+        lines.append('<table class="table table-hover table-sm">\n')
+        lines.append('<thead class="thead-dark">\n<tr><th>ID</th><th>Firstname</th><th>Lastname</th><th>Email</th><th>Team</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th></th></thead>\n')
+        for student_id, result_line in self.student_results.items():
+            if not result_line.valid:
+                continue    
+            team_id = self.students.get_team(student_id)
+            team_percent = self.teams.get_rat_precentage(team_id)
+            if team_id in self.team_results:
+                team_result = self.team_results[team_id]
+                team_score = team_result.score
+                answer_t = team_result.result
+                correct_t = self.solution_document.get_team_solution(team_id).get_correct_answers_string()
+                total_score = (team_percent * team_result.score + (100 - team_percent) * result_line.score) / 100
+            else:
+                team_score = None
+                answer_t = None
+                correct_t = None
+                total_score = result_line.score
+            lines.append('<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td>'.format(student_id, 
+                self.students.get_firstname(student_id).encode('ascii', 'xmlcharrefreplace'), 
+                self.students.get_lastname(student_id).encode('ascii', 'xmlcharrefreplace'), 
+                self.students.get_email(student_id), team_id))
+            for answer in result_line.normalized_results.values():
+                lines.append('<td>{}</td>'.format(answer))
+            lines.append('</tr>\n')
+        lines.append('</table>')
+        lines.append('</body></html>')
+        with open(filename, 'w') as file:
+            file.write("".join(lines))
+
     def stats(self):
 
         def aggregate_results(results):

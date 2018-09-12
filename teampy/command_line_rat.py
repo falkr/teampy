@@ -166,6 +166,8 @@ def rat_grade(file_input, file_path):
 
     results_file_path = parallel_file_path(file_path, 'xlsx')
     result.store_results(results_file_path)
+    results_file_path = parallel_file_path(file_path, 'html')
+    result.store_results_html(results_file_path)
     result.stats()
 
 def create_message(student_id, row, result, teampy):
