@@ -776,8 +776,8 @@ class Result:
                 correct_t = None
                 total_score = result_line.score
             lines.append('<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td>'.format(student_id, 
-                self.students.get_firstname(student_id).encode('ascii', 'xmlcharrefreplace'), 
-                self.students.get_lastname(student_id).encode('ascii', 'xmlcharrefreplace'), 
+                self.students.get_firstname(student_id), 
+                self.students.get_lastname(student_id), 
                 self.students.get_email(student_id), team_id))
             for answer in result_line.normalized_results.values():
                 lines.append('<td>{}</td>'.format(answer))
@@ -789,7 +789,7 @@ class Result:
         lines.append('<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>')
         lines.append('<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.12.1/bootstrap-table.min.js"></script>')
         lines.append('</html>')
-        with open(filename, 'w') as file:
+        with open(filename, 'w', encoding='latin-1') as file:
             file.write("".join(lines))
 
     def stats(self):
