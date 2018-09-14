@@ -779,7 +779,8 @@ class Result:
                 self.students.get_firstname(student_id), 
                 self.students.get_lastname(student_id), 
                 self.students.get_email(student_id), team_id))
-            for answer in result_line.normalized_results.values():
+            for question_number in range(1, 11): # TODO allow flexible number of questions
+                answer = result_line.normalized_results[question_number]
                 lines.append('<td>{}</td>'.format(answer))
             lines.append('</tr>\n')
         lines.append('</table>')
