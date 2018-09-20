@@ -93,9 +93,11 @@ It just creates a LaTeX file with the questions in their original order and with
 
 ## Testing a RAT with a Colleague
 
-Usually it is a good idea to test your RAT with a colleague. For this, use the command
+Usually it is a good idea to test your RAT with a colleague, which means that they receive a copy of the RAT with 
+shuffled answer alternatives so they have to think about the right answer. 
+For this, use the command
 
     rat trial questions.txt
 
 The resulting file prints one copy of the RAT, but shuffles the answers randomly. 
-You can print it and test the RAT either yourself or with colleagues. 
+You don't need to have a `students.xlsx` file, which means you can test your RATs also before the semester has started.
