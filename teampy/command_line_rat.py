@@ -102,7 +102,7 @@ def rat_check(file_input, file_path):
             print(Fore.RED + 'Question {} has no true answer. The first answer alternative must be the true one.'.format(question.number) + Style.RESET_ALL)
             return
     tell('The rat looks okay.')
-    latex = questionaire.write_latex(test_solution='bcdabdabdc')
+    latex = questionaire.write_latex()
     write_latex(latex, file_path)
 
 def parallel_file_path(file_path, alternative_extension):
