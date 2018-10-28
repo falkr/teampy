@@ -69,8 +69,9 @@ class Students:
         self.df = pd.read_excel(filename, dtype={'id': str, 'team': str, 'table':str})
         self.df = self.df.set_index('id')
 
-    def get_ids(self):
-        return self.df.index.values
+    def get_ids(self, sort_by='lastname'):
+        sorted_df = self.df.sort_values(sort_by)
+        return sorted_df.index.values
 
     def get_student_ids_of_team(self, team_id):
         return self.df[self.df['team']==team_id].index.values
@@ -94,6 +95,10 @@ class Students:
     def get_team(self, student_id):
         student = self.df.loc[student_id]
         return str(student['team'])
+    
+    def get_table(self, student_id):
+        student = self.df.loc[student_id]
+        return str(student['table'])
 
     def get_team_ids(self):
         return self.df['team'].unique()
@@ -363,10 +368,13 @@ class Questionaire:
                 lines.append(question.write_latex(question.number, key))
             lines.append(page_break)
 
-        for student_id in students.get_ids(): # TODO sort by table, team, or surname
+        # questionaire for each student
+        for student_id in students.get_ids(sort_by='table'): # TODO sort by table, team, or surname
             name = tex_escape(students.get_name(student_id))
             team_id = students.get_team(student_id)
-            lines.append('\\individualprefix{{{}}}{{{}}}{{{}}}\n\n'.format(name, student_id, team_id))
+            table = students.get_table(student_id)
+            #lines.append('\\individualprefix{{{}}}{{{}}}{{{}}}\n\n'.format(name, student_id, team_id))
+            lines.append('\\individualprefixtable{{{}}}{{{}}}{{{}}}{{{}}}\n\n'.format(name, student_id, team_id, table))
             solution = solution_document.student_solutions[student_id]
             # sort question according to solution for this student
             index = 0
@@ -587,14 +595,19 @@ class ResultLine:
         # unshuffle the questions, bring back into original question sequence
         self.normalized_results = {} #= np.arange(self.questionaire.number_of_questions())
         for index, question in enumerate(self.solution.questions):
-            answer_given = self.result[index]
-            answer_given_ord = ord(answer_given) - ord('a') # 0, 1, 2,...
-            # now also transform back the answer given, based on the solution letter
-            answer_key = self.solution.answers[index]
-            array = np.asarray(['a', 'b', 'c', 'd'])
-            hops = ord('a') - ord(answer_key)
-            answer_given = np.roll(array, -hops)[answer_given_ord]
-            self.normalized_results[int(question)] = answer_given
+            if index < len(self.result):
+                answer_given = self.result[index]
+                if answer_given is 'x':
+                    self.normalized_results[int(question)] = 'x'
+                else: 
+                    answer_given_ord = ord(answer_given) - ord('a') # 0, 1, 2,...
+                    # now also transform back the answer given, based on the solution letter
+                    answer_key = self.solution.answers[index]
+                    array = np.asarray(['a', 'b', 'c', 'd'])
+                    hops = ord('a') - ord(answer_key)
+                    answer_given = np.roll(array, -hops)[answer_given_ord]
+                    self.normalized_results[int(question)] = answer_given
+        
         correct_answers = 0
         for c in self.normalized_results.values():
             if c == 'a':
@@ -742,6 +755,7 @@ class Result:
                                      'comment': ''})
         columns = ['id', 'email', 'lastname', 'firstname', 'team', 'answer_i','correct_i', 'answer_t', 'correct_t', 'irat', 'pi', 'trat', 'pt', 'score', 'feedback', 'comment']
         result_table = pd.DataFrame(result_table)
+        # TODO this can go wrong in case we have no entries?
         result_table = result_table[columns]
         result_table = result_table.set_index('id')
         result_table.to_excel(filename)
@@ -779,7 +793,8 @@ class Result:
                 self.students.get_firstname(student_id), 
                 self.students.get_lastname(student_id), 
                 self.students.get_email(student_id), team_id))
-            for question_number in range(1, 11): # TODO allow flexible number of questions
+            for question_number in range(1, len(result_line.normalized_results) + 1): 
+                # TODO allow flexible number of questions
                 answer = result_line.normalized_results[question_number]
                 lines.append('<td>{}</td>'.format(answer))
             lines.append('</tr>\n')
@@ -796,17 +811,16 @@ class Result:
     def stats(self):
 
         def aggregate_results(results):
-            df = pd.DataFrame(index=range(1,11), columns=['a','b','c','d'])
+
+            df = pd.DataFrame(index=range(1, len(self.questionaire.questions) + 1), columns=['a','b','c','d'])
             df = df.fillna(0)
             for result in results:
                 if result.valid:
-                    for question in range(1,11):
+                    for question in range(1,len(result.normalized_results) + 1):
                         answer = result.normalized_results[question]
-                        df.loc[question, answer] += 1
+                        if answer is not 'x':
+                            df.loc[question, answer] += 1
             return df
-
-        df_i = aggregate_results(self.student_results.values())
-        df_t = aggregate_results(self.team_results.values())
 
         def truncate(data, max):
             return data[:max] + (data[max:] and '...')
@@ -822,6 +836,8 @@ class Result:
             for i in range(1,len(scores)):
                 print('  ' + Style.DIM + '{}: '.format( chr(65+i)) + fill * int(scores[i] * bar_width / 100) + ' {0:.1f}'.format(scores[i]))
 
+        df_i = aggregate_results(self.student_results.values())
+        df_t = aggregate_results(self.team_results.values())
         # TODO get terminal width
         terminal_width = 125
         for index, row in df_i.iterrows():
@@ -884,6 +900,13 @@ class Teampy:
 
         students_file = os.path.join(directory, 'students.xlsx')
         self.students = Students(students_file)
+        # check if student ids are unique
+        s = set()
+        duplicates = set(x for x in list(self.students.df.index.values) if x in s or s.add(x))
+        if len(duplicates) > 0:
+            tell('The ids of some students are not unique. Check {}'.format(duplicates), level='error')
+            quit()
+
 
         teams_file = os.path.join(directory, 'teams.xlsx')
         if os.path.isfile(teams_file):
