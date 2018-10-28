@@ -69,6 +69,9 @@ class Students:
         self.df = pd.read_excel(filename, dtype={'id': str, 'team': str, 'table':str})
         self.df = self.df.set_index('id')
 
+    def assigned_to_tables(self):
+        return 'tables' in self.df.columns
+
     def get_ids(self, sort_by='lastname'):
         sorted_df = self.df.sort_values(sort_by)
         return sorted_df.index.values
@@ -369,7 +372,10 @@ class Questionaire:
             lines.append(page_break)
 
         # questionaire for each student
-        for student_id in students.get_ids(sort_by='table'): # TODO sort by table, team, or surname
+        sort_by = 'team'
+        if(students.assigned_to_tables()):
+            sort_by = 'table'
+        for student_id in students.get_ids(sort_by=sort_by):
             name = tex_escape(students.get_name(student_id))
             team_id = students.get_team(student_id)
             table = students.get_table(student_id)
