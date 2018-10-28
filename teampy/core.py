@@ -185,6 +185,9 @@ class Question:
     def add_fake(self, line):
         self.fake.append(line)
 
+    def get_answers(self):
+        return [self.true] + self.fake.copy()
+
     def get_rolled_answers(self, key):
         answers = []
         answers.append(self.true)
@@ -773,6 +776,7 @@ class Result:
         lines.append('<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">\n')
         lines.append('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.12.1/bootstrap-table.min.css">\n')
         lines.append('</head><body>\n')
+
         lines.append('<table class="table table-hover table-sm" data-toggle="table">\n')
         lines.append('<thead class="thead-dark">\n<tr><th data-field="id" data-sortable="true">ID</th><th data-field="firstname" data-sortable="true">Firstname</th>')
         lines.append('<th data-field="lastname" data-sortable="true">Lastname</th><th data-field="email" data-sortable="true">Email</th><th data-field="team" data-sortable="true">Team</th>')
@@ -814,7 +818,7 @@ class Result:
         with open(filename, 'w', encoding='latin-1') as file:
             file.write("".join(lines))
 
-    def stats(self):
+    def stats(self, filename):
 
         def aggregate_results(results):
 
@@ -834,23 +838,72 @@ class Result:
         def print_question(number, text, scores, terminal_width):
             bar_width = terminal_width - 10
             fill = '█'
-            padd = ''
             print('')
             print(Style.BRIGHT + '     Q{}:'.format(number) + Style.BRIGHT + ' {}'.format( truncate(text, bar_width-10)))
-
             print('  ' + Style.NORMAL + 'A: ' + fill * int(scores[0] * bar_width / 100) + ' {0:.1f}'.format(scores[0]))
             for i in range(1,len(scores)):
                 print('  ' + Style.DIM + '{}: '.format( chr(65+i)) + fill * int(scores[i] * bar_width / 100) + ' {0:.1f}'.format(scores[i]))
 
+        def print_in_console(df_i):
+            # TODO get terminal width
+            terminal_width = 125
+            for index, row in df_i.iterrows():
+                # row is a Series
+                scores = row.copy() * 100 / row.sum()
+                preview = self.questionaire.questions[int(index)-1].question
+                print_question(index, preview, scores, terminal_width)
+
+        def print_question_html(number, question, scores):
+            lines = []
+            lines.append('<div class="card mt-5">')
+            lines.append('    <div class="card-header">')
+            lines.append('    <b>Question {}:</b> {}'.format(number, question.question))
+            lines.append('    </div>')
+            lines.append('<ol class="list-group list-group-flush">')
+            answers = question.get_answers()
+            for i in range(0,len(scores)):
+                if i == 0:  
+                    lines.append('<li class="list-group-item"><div>{} <small class="text-muted">(This is the right answer.)</small></div>'.format(answers[i]))
+                    bar = 'bg-success' 
+                else:
+                    lines.append('<li class="list-group-item"><div>{}</div>'.format(answers[i]))
+                    bar = 'bg-danger'
+                lines.append('    <div class="progress">')
+                lines.append('    <div class="progress-bar {}" role="progressbar" style="width: {:.1f}%">{:.1f}%</div>'.format(bar, scores[i], scores[i]))
+                lines.append('    </div>')
+                lines.append('</li>')
+            lines.append('</div>')
+            return '\n'.join(lines)
+
+        def print_html(df_i):
+            lines = []
+            lines.append('<html><head>')
+            lines.append('<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">')
+            lines.append('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.12.1/bootstrap-table.min.css">')
+            lines.append('</head><body>')
+            lines.append('<div class="container" role="main">')
+            for index, row in df_i.iterrows():
+                # row is a Series
+                scores = row.copy() * 100 / row.sum()
+                question = self.questionaire.questions[int(index)-1]
+                lines.append(print_question_html(index, question, scores))
+            lines.append('</div>')
+            lines.append('</body>')
+            lines.append('<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>')
+            lines.append('<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>')
+            lines.append('<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>')
+            lines.append('<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.12.1/bootstrap-table.min.js"></script>')
+            lines.append('</html>')
+            with open(filename, 'w', encoding='latin-1') as file:
+                file.write("\n".join(lines))
+
         df_i = aggregate_results(self.student_results.values())
         df_t = aggregate_results(self.team_results.values())
-        # TODO get terminal width
-        terminal_width = 125
-        for index, row in df_i.iterrows():
-            # row is a Series
-            scores = row.copy() * 100 / row.sum()
-            preview = self.questionaire.questions[int(index)-1].question
-            print_question(index, preview, scores, terminal_width)
+        
+        print_in_console(df_i)
+        print_html(df_i)
+
+        
 
 
 

@@ -168,7 +168,7 @@ def rat_grade(file_input, file_path):
     result.store_results(results_file_path)
     results_file_path = parallel_file_path(file_path, 'html')
     result.store_results_html(results_file_path)
-    result.stats()
+    result.stats(filename=parallel_file_path(file_path, '_stats.html'))
 
 def create_message(student_id, row, result, teampy):
     msg = MIMEMultipart()
