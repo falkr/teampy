@@ -23,10 +23,10 @@ The connection to the server is protected via TLS, and Teampy prompts each time 
 Depending on the email system you use, you will not see the mail in your folder with sent items.
 
 Teampy will modify the results file, and write in the column `feedback` if it succeeded to send the email to the specific student. 
-The field will then say `ok'. 
+The field will then say `sent`. 
 In case some emails could not be sent, Teampy will try to tell you the reason. 
 You can then run the command again:
 
     rat email results.xlsx
 
-Teampy will then try to send the email to all students that have not yet an `ok` in the `feedback` column. 
+Teampy will then try to send the email to all students that have not yet an `sent` in the `feedback` column. 

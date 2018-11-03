@@ -42,9 +42,10 @@ The number is used to make the identifiers unique.
 Example: A student named Kari Nordman gets the id `kn1`. Another student with the
 same initials gets the id `kn2`.
 
-The table can contain a column `table` that lists the tables where everyone sits
-during the RAT. This is later useful when the RATs are printed.
-They can be sorted according to the table and distributing them is fast and simple.
+The table can contain an optional column `table` that lists the tables where everyone sits
+during the RAT. When you print the RAT for all students, the pages are then sorted by table, 
+which makes distribution much quicker. If there is no table column, the RATs will be sorted by team.
+
 
 ## Teams File
 

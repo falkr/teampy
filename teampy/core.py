@@ -306,7 +306,6 @@ class Questionaire:
             return questionaire
 
     def write_trial_latex(self):
-        page_break = '\\cleardoublepage\n\\newpage\n\n'
         lines = []
         # add latex preamble
         # abs_file_path = os.path.join(os.path.dirname(__file__), 'resources', 'latex_preamble.tex')
@@ -777,9 +776,9 @@ class Result:
         lines.append('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.12.1/bootstrap-table.min.css">\n')
         lines.append('</head><body>\n')
 
-        lines.append('<table class="table table-hover table-sm" data-toggle="table">\n')
+        lines.append('<table class="table table-hover table-sm table-condensed" data-toggle="table">\n')
         lines.append('<thead class="thead-dark">\n<tr><th data-field="id" data-sortable="true">ID</th><th data-field="firstname" data-sortable="true">Firstname</th>')
-        lines.append('<th data-field="lastname" data-sortable="true">Lastname</th><th data-field="email" data-sortable="true">Email</th><th data-field="team" data-sortable="true">Team</th>')
+        lines.append('<th data-field="lastname" data-sortable="true">Lastname</th><th data-field="email" data-sortable="true">Email</th><th data-field="team" data-sortable="true">Team</th><th data-field="score" data-sortable="true">Score</th>')
         for question in range(1,11):
             lines.append('<th data-field="q{}" data-sortable="true">{}</th>'.format(question, question))
         lines.append('</thead>\n')
@@ -799,10 +798,12 @@ class Result:
                 answer_t = None
                 correct_t = None
                 total_score = result_line.score
-            lines.append('<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td>'.format(student_id, 
+            lines.append('<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{:.1f}</td>'.format(student_id, 
                 self.students.get_firstname(student_id), 
                 self.students.get_lastname(student_id), 
-                self.students.get_email(student_id), team_id))
+                self.students.get_email(student_id),
+                team_id, 
+                result_line.score))
             for question_number in range(1, len(result_line.normalized_results) + 1): 
                 # TODO allow flexible number of questions
                 answer = result_line.normalized_results[question_number]
