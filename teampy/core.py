@@ -380,9 +380,11 @@ class Questionaire:
         for student_id in students.get_ids(sort_by=sort_by):
             name = tex_escape(students.get_name(student_id))
             team_id = students.get_team(student_id)
-            table = students.get_table(student_id)
-            #lines.append('\\individualprefix{{{}}}{{{}}}{{{}}}\n\n'.format(name, student_id, team_id))
-            lines.append('\\individualprefixtable{{{}}}{{{}}}{{{}}}{{{}}}\n\n'.format(name, student_id, team_id, table))
+            if(students.assigned_to_tables()):
+                table = students.get_table(student_id)
+                lines.append('\\individualprefixtable{{{}}}{{{}}}{{{}}}{{{}}}\n\n'.format(name, student_id, team_id, table))
+            else:
+                lines.append('\\individualprefix{{{}}}{{{}}}{{{}}}\n\n'.format(name, student_id, team_id))
             solution = solution_document.student_solutions[student_id]
             # sort question according to solution for this student
             index = 0
