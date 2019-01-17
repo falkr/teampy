@@ -162,7 +162,11 @@ def rat_grade(file_input, file_path):
     solutions.load(rat.solutions_file, teampy.students, teampy.teams)
 
     result = Result(teampy.students, teampy.teams, questionaire, solutions)
-    result.load_results(file_input)
+    student_results_count, team_results_count = result.load_results(file_input)
+
+    if (student_results_count + team_results_count) == 0:
+        tell('The results file does not contain any results.', 'warning')
+        return
 
     results_file_path = parallel_file_path(file_path, 'xlsx')
     result.store_results(results_file_path)
@@ -215,6 +219,10 @@ def rat_email(file_input, file_path):
     """
     Send the results of a RAT to students via email.
     """
+    if not file_path.endswith('.xlsx'):
+        tell('This command only takes an *.xlsx as input.', 'error')
+        return
+
     teampy = Teampy()
     
     if teampy.smtp_settings is None:

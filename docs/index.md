@@ -10,7 +10,7 @@ For the creation of RATs, Teampy helps you with the following:
 
 * **Write your RAT in a simple textual format.** This lets you work in the editor of your choice. In this source format, you write questions so that always the first answer alternative is the best (correct) one. 
 * Convert the raw RATs into LaTeX, from which you can generate PDF.
-* **Teampy shuffles the questions and answers for each student and each team.** This makes cheating a bit harder, since students cannot just copy the answer alternatives from their neighbors. It also lets you select the scratch cards for the teams without reshuffling your question alternatives manually.**
+* **Teampy shuffles the questions and answers for each student and each team.** This makes cheating a bit harder, since students cannot just copy the answer alternatives from their neighbors. It also lets you select the scratch cards for the teams without reshuffling your question alternatives manually.
 * All students receive an individual answer sheet with their name already filled out. <span class="minor">This gives you better control over who attends the RATs, and prevents students from taking them home when RATs count for final grades.</span>
 
 For the grading, Teampy helps you with the following:

@@ -540,7 +540,7 @@ class SolutionDocument:
                     continue
                 elements = line.split(':')
                 if len(elements) != 2:
-                    tell('Invalid entry in line {} of the file {}.'.format(line_number, filename))
+                    tell('Invalid entry in line {} of the file {}.'.format(line_number, filename), 'error')
                 else:
                     key = elements[0].strip()
                     rawcode = elements[1].strip()
@@ -549,7 +549,7 @@ class SolutionDocument:
                     elif students.exists(key):
                         self.student_solutions[key] = Solution.create_solution_from_string(rawcode)
                     else:
-                        tell('Entry for id {} in line {} does not correspond to a team or student.'.format(key, line_number))
+                        tell('Entry for id {} in line {} does not correspond to a team or student.'.format(key, line_number), 'error')
         tell('Reading solutions file')
 
     def printx(self):
@@ -559,40 +559,51 @@ class SolutionDocument:
 
 class ResultLine:
 
-    def __init__(self, result_id, result, checksum, line_number, questionaire):
+    def __init__(self, result_id, result, checksum, line_number, questionaire, filename, students):
         self.result_id = result_id
         self.result = result
         self.checksum = checksum
         self.line_number = line_number
         self.questionaire = questionaire
+        self.filename = filename
+        self.students = students
         # will be set later:
         self.solution = None
         self.type = None # 'student' or 'team'
         self.valid = False
 
     def check(self):
+        team = ''
+        if self.type is 'student':
+            team = self.students.get_team(self.result_id)
+            if team is None:
+                team = ''
+            else:
+                team = ' (team {})'.format(team)
         # check that result has proper length
+        # TODO also print which filename, like 'results.txt'
+        # TODO also print which team a student belongs to, for easier finding it
         if len(self.result) != self.questionaire.number_of_questions():
-            tell('Line {}: The result entry for id {} has {} letters, but the RAT has {} questions.'.format(self.line_number, self.result_id, len(self.result), self.questionaire.number_of_questions()), 'error')
+            tell('File {}, line {}: The result entry for id {}{} has {} letters, but the RAT has {} questions.'.format(self.filename, self.line_number, self.result_id, team, len(self.result), self.questionaire.number_of_questions()), 'error')
             return False
         # check that the answer alternatives are proper letters within the range (+x)
         valid_letters = ['a', 'b', 'c', 'd', 'x']
         for letter in self.result:
             if letter not in valid_letters:
-                tell('Line {}: The result entry for id {} contains letter "{}", which is not valid. Only answer alternative letters ("a", "b",...) and "x" are allowed.'.format(self.line_number, self.result_id, letter), 'error')
+                tell('File {}, line {}: The result entry for id {}{} contains letter "{}", which is not valid. Only answer alternative letters ("a", "b",...) and "x" are allowed.'.format(self.filename, self.line_number, self.result_id, team, letter), 'error')
                 return False
         # check that checksum is correct, and that it corresponds with result string
         if self.type is 'student':
             if len(self.checksum) != 4:
-                tell('Line {}: The checksum for id {} is wrong.'.format(self.line_number, self.result_id), 'error')
+                tell('File {}, line {}: The checksum for student with id {}{} is wrong.'.format(self.filename, self.line_number, self.result_id, team), 'error')
                 return False
             for number in self.checksum:
                 if number not in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']:
-                    tell('Line {}: The checksum for id {} is wrong.'.format(self.line_number, self.result_id), 'error')
+                    tell('File {}, line {}: The checksum for student with id {}{} is wrong.'.format(self.filename, self.line_number, self.result_id, team), 'error')
                     return False
             for index, letter in enumerate(['a', 'b', 'c', 'd']):
                 if self.result.count(letter) != int(self.checksum[index]):
-                    tell('Line {}: The checksum for id {} is inconsistent.'.format(self.line_number, self.result_id), 'error')
+                    tell('File {}, line {}: The checksum for student with id {}{} is inconsistent.'.format(self.filename, self.line_number, self.result_id, team), 'error')
                     return False
         elif self.type is 'team':
             pass
@@ -641,7 +652,7 @@ class Result:
         self.student_results = {}
         self.team_results = {}
 
-    def _parse_result_line(self, result, line_number, questionaire):
+    def _parse_result_line(self, result, line_number, questionaire, filename, students):
         tokens = result.split('/')
         if len(tokens) != 3:
             tell('The result string in line {} must consist of id/result/checksum.'.format(line_number), 'warn')
@@ -649,10 +660,11 @@ class Result:
         return ResultLine(tokens[0].strip(),
                           tokens[1].strip(),
                           tokens[2].strip(),
-                          line_number, questionaire)
+                          line_number, questionaire, filename, students)
 
     def load_results(self, file_input):
         lines = file_input.readlines()
+        filename = file_input.name
         file_input.close()
         tell('Reading results file.')
 
@@ -686,7 +698,7 @@ class Result:
                     # ignore, it's a comment
                     pass
                 else:
-                    result_line = self._parse_result_line(line, line_number, self.questionaire)
+                    result_line = self._parse_result_line(line, line_number, self.questionaire, filename, self.students)
                     if result_line is not None:
                         result_lines.append(result_line)
                         if result_line.result_id in unique_ids:
@@ -729,6 +741,7 @@ class Result:
             else:
                 tell('Line {}: There exists no student or team with id {}.'.format(result_line.line_number, result_line.result_id), 'warn')
             result_line.check()
+        return len(self.student_results), len(self.team_results)
 
     def store_results(self, filename):
         result_table = []
