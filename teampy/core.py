@@ -70,7 +70,7 @@ class Students:
         self.df = self.df.set_index('id')
 
     def assigned_to_tables(self):
-        return 'tables' in self.df.columns
+        return 'table' in self.df.columns
 
     def get_ids(self, sort_by='lastname'):
         sorted_df = self.df.sort_values(sort_by)
