@@ -174,7 +174,7 @@ class Teams:
 
 class Question:
     def __init__(self, question_lines, figure, number):
-        self.question = ' '.join(question_lines)
+        self.question = '\n'.join(question_lines)
         self.fake = []
         self.figure = figure
         self.number = number
