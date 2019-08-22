@@ -74,9 +74,7 @@ The RAT files should be stored in their own folder, so that Teampy creates other
 
 ## Encoding
 
-When you store the RAT file, your editor will use an encoding for the characters.
-If you write in plain English, ASCII or UTF-8 will work fine, but if you want to use other characters,
-choose **ISO-Latin-1** or **ISO-Latin-9**.
+Store your text files as **UTF-8**.
 
 
 ## Checking RATs

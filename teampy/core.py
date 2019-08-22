@@ -131,7 +131,6 @@ class Students:
 
     def check():
         # TODO check that all emails are valid and unique
-        # TODO check name characters (Latin-1 encoding?)
         # TODO check unique ID
         assert False
 
@@ -299,7 +298,7 @@ class Questionaire:
         return 0, None
 
     def read_questionaire(filename):
-        with open(filename, 'r', encoding='latin-1') as file:
+        with open(filename, 'r', encoding='utf-8') as file:
             content = file.readlines()
             questionaire = Questionaire()
             questionaire._parse(content)
@@ -310,7 +309,7 @@ class Questionaire:
         # add latex preamble
         # abs_file_path = os.path.join(os.path.dirname(__file__), 'resources', 'latex_preamble.tex')
         abs_file_path = os.path.join(os.path.dirname(__file__), 'latex_preamble.tex')
-        with open (abs_file_path, "r", encoding='latin-1') as myfile:
+        with open (abs_file_path, "r", encoding='utf-8') as myfile:
             preamble = myfile.read() #.replace('\n', '')
             lines.append(preamble)
         lines.append('\\subsubsection*{{RAT Test Run}}\n')
@@ -328,7 +327,7 @@ class Questionaire:
         # add latex preamble
         # abs_file_path = os.path.join(os.path.dirname(__file__), 'resources', 'latex_preamble.tex')
         abs_file_path = os.path.join(os.path.dirname(__file__), 'latex_preamble.tex')
-        with open (abs_file_path, "r", encoding='latin-1') as myfile:
+        with open (abs_file_path, "r", encoding='utf-8') as myfile:
             preamble = myfile.read() #.replace('\n', '')
             lines.append(preamble)
 
@@ -530,7 +529,7 @@ class SolutionDocument:
             #yaml.dump(self.solutions, outfile, default_flow_style=False)
 
     def load(self, filename, students, teams):
-        with open(filename, 'r', encoding='latin-1') as file:
+        with open(filename, 'r', encoding='utf-8') as file:
             lines = file.readlines()
             line_number = 0
             for line in lines:
@@ -831,7 +830,7 @@ class Result:
         lines.append('<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>')
         lines.append('<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.12.1/bootstrap-table.min.js"></script>')
         lines.append('</html>')
-        with open(filename, 'w', encoding='latin-1') as file:
+        with open(filename, 'w', encoding='utf-8') as file:
             file.write("".join(lines))
 
     def stats(self, filename):
@@ -910,7 +909,7 @@ class Result:
             lines.append('<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>')
             lines.append('<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.12.1/bootstrap-table.min.js"></script>')
             lines.append('</html>')
-            with open(filename, 'w', encoding='latin-1') as file:
+            with open(filename, 'w', encoding='utf-8') as file:
                 file.write("\n".join(lines))
 
         df_i = aggregate_results(self.student_results.values())
@@ -938,14 +937,14 @@ class Teampy:
         return self.teams
 
     def load_scratch_cards(self, filename):
-        rawcodes = yaml.load(open(filename, 'r', encoding='latin-1'))
+        rawcodes = yaml.load(open(filename, 'r', encoding='utf-8'))
         codes = {}
         for key in rawcodes:
             codes[key] = Solution.create_solution_from_string(rawcodes[key], card_id=key)
         return codes
 
     def load_smtp_settings(self, filename):
-        settings = yaml.load(open(filename, 'r', encoding='latin-1'))
+        settings = yaml.load(open(filename, 'r', encoding='utf-8'))
         if 'from' not in settings:
             tell('The smtp settings need to include attribute "from" with your email.', 'error')
             # TODO check if 'from' is a valid email, at least syntactically

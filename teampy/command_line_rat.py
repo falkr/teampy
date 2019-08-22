@@ -153,7 +153,7 @@ def rat_grade(file_input, file_path):
     rat = RATContext(teampy)
 
     # read in the questionaire
-    questionaire = _load_rat_file(click.open_file(rat.questionaire_file, encoding='latin-1'))
+    questionaire = _load_rat_file(click.open_file(rat.questionaire_file, encoding='utf-8'))
     if questionaire is None:
         tell('Could not read questions. Aborting.', 'error')
         return
@@ -232,7 +232,7 @@ def rat_email(file_input, file_path):
     # TODO give RAT context the directory relative to the file_input
     rat = RATContext(teampy)
     # read in the questionaire
-    questionaire = _load_rat_file(click.open_file(rat.questionaire_file, encoding='latin-1'))
+    questionaire = _load_rat_file(click.open_file(rat.questionaire_file, encoding='utf-8'))
     if questionaire is None:
         tell('Could not read questions. Aborting.', 'error')
         return
@@ -243,7 +243,7 @@ def rat_email(file_input, file_path):
     # read in the corresponding result file
     results_file_path = parallel_file_path(file_path, 'txt')
     result = Result(teampy.students, teampy.teams, questionaire, solutions)
-    result.load_results(click.open_file(results_file_path, encoding='latin-1'))
+    result.load_results(click.open_file(results_file_path, encoding='utf-8'))
 
     # read in the graded file
     df = pd.read_excel(file_path, dtype={'id': str, 'team': str, 'email':str, 'comment':str, 'feedback':str})
@@ -334,7 +334,7 @@ def new():
     """
     print_teampy()
     click.echo('Create a new RAT.')
-    # store as ISO-Latin-1
+    # store as UTF-8
     # ask for a title
     # ask for number of questions
     # ask for answer alternatives
@@ -352,7 +352,7 @@ def check(file):
     Check a RAT file for consistency before printing.
     """
     print_teampy()
-    rat_check(click.open_file(file, encoding='latin-1'), file)
+    rat_check(click.open_file(file, encoding='utf-8'), file)
 
 @rat.command()
 @click.argument('file', type=click.Path(exists=True))
@@ -363,7 +363,7 @@ def trial(file):
     """
     print_teampy()
     file_path = file
-    file = click.open_file(file, encoding='latin-1')
+    file = click.open_file(file, encoding='utf-8')
     questionaire = _load_rat_file(file)
     if questionaire is None:
         return
@@ -380,7 +380,7 @@ def print_(file, teamsolution):
     """
     # TODO if no valid team solution code is shown, add prompt that also shows which scratch cards are available
     print_teampy()
-    rat_print(click.open_file(file, encoding='latin-1'), file, teamsolution)
+    rat_print(click.open_file(file, encoding='utf-8'), file, teamsolution)
 
 @rat.command()
 @click.argument('file', type=click.Path(exists=True))
@@ -389,7 +389,7 @@ def grade(file):
     Evaluate a RAT during class.
     """
     print_teampy()
-    rat_grade(click.open_file(file, encoding='latin-1'), file)
+    rat_grade(click.open_file(file, encoding='utf-8'), file)
 
 @rat.command()
 @click.argument('file', type=click.Path(exists=True))
@@ -398,7 +398,7 @@ def email(file):
     Send feedback to students via email.
     """
     print_teampy()
-    rat_email(click.open_file(file, encoding='latin-1'), file)
+    rat_email(click.open_file(file, encoding='utf-8'), file, testonly)
 
 if __name__ == "__main__":
     rat()
