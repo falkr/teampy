@@ -108,7 +108,7 @@ def rat_check(file_input, file_path):
 def parallel_file_path(file_path, alternative_extension):
     head, tail = os.path.split(file_path)
     tail_base = tail.split('.')[0]
-    return os.path.join(os.path.dirname(file_path), '{}.{}'.format(tail_base, alternative_extension))
+    return os.path.join(os.path.dirname(file_path), '{}{}'.format(tail_base, alternative_extension))
 
 def rat_print(file_input, file_path, team_solution):
     """
@@ -168,9 +168,9 @@ def rat_grade(file_input, file_path):
         tell('The results file does not contain any results.', 'warning')
         return
 
-    results_file_path = parallel_file_path(file_path, 'xlsx')
+    results_file_path = parallel_file_path(file_path, '.xlsx')
     result.store_results(results_file_path)
-    results_file_path = parallel_file_path(file_path, 'html')
+    results_file_path = parallel_file_path(file_path, '.html')
     result.store_results_html(results_file_path)
     result.stats(filename=parallel_file_path(file_path, '_stats.html'))
 
@@ -241,7 +241,7 @@ def rat_email(file_input, file_path):
     solutions.load(rat.solutions_file, teampy.students, teampy.teams)
 
     # read in the corresponding result file
-    results_file_path = parallel_file_path(file_path, 'txt')
+    results_file_path = parallel_file_path(file_path, '.txt')
     result = Result(teampy.students, teampy.teams, questionaire, solutions)
     result.load_results(click.open_file(results_file_path, encoding='utf-8'))
 
