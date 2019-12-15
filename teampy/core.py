@@ -68,12 +68,21 @@ class Students:
     def __init__(self, filename):
         self.df = pd.read_excel(filename, dtype={'id': str, 'team': str, 'table':str})
         self.df = self.df.set_index('id')
+        if all(self.df.team.apply(lambda team: team.isdigit())):
+            self.df['team_int'] = self.df.team.astype(int)
+        if all(self.df.table.apply(lambda table: table.isdigit())):
+            self.df['table_int'] = self.df.table.astype(int)
 
     def assigned_to_tables(self):
         return 'table' in self.df.columns
 
     def get_ids(self, sort_by='lastname'):
-        sorted_df = self.df.sort_values(sort_by)
+        if (sort_by == 'team') & ('team_int' in self.df.columns):
+            sorted_df = self.df.sort_values('team_int')
+        elif (sort_by == 'table') & ('table_int' in self.df.columns):
+            sorted_df = self.df.sort_values('table_int')
+        else:
+            sorted_df = self.df.sort_values(sort_by)
         return sorted_df.index.values
 
     def get_student_ids_of_team(self, team_id):
