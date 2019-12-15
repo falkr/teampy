@@ -186,7 +186,7 @@ def create_message(student_id, row, result, teampy):
   <head></head>
   <body>
     <p>Hi {}!</p>
-    <p>Here are the results form the latest RAT:</p>
+    <p>Here are the results from the latest RAT:</p>
     <table>
       <tr><td>Name:</td><td>{} {}</td><tr>
       <tr><td>ID:</td><td><code>{}</code></td><tr>
@@ -208,15 +208,16 @@ def create_message(student_id, row, result, teampy):
     html = html + """\
       <tr><td>Final Score for this RAT:</td><td><b>{}</b></td><tr>
     </table>
+    <p>{}</p>
     <p>This mail was automated, but you can reply to it.</p>
   </body>
 </html>
-""".format(row['score'])
+""".format(row['score'], row['comment'])
     msg.attach(MIMEText(html, 'html'))
     return msg    
 
 
-def rat_email(file_input, file_path):
+def rat_email(file_input, file_path, testonly):
     """
     Send the results of a RAT to students via email.
     """
@@ -260,8 +261,18 @@ def rat_email(file_input, file_path):
         # TODO check if we need to send email to this student
         if row['feedback'] != 'sent':
             messages[student_id] = create_message(student_id, row, result, teampy)
+
+    # store the messages
+    for student_id, message in messages.items():
+        html_file_path = os.path.join(os.path.dirname(file_path), 'emails/{}.html'.format(student_id))
+        with open(html_file_path, "w") as html_file:
+            html_file.write(message.as_string()) 
+    
     if len(messages)==0:
         tell('There is nothing to send.')
+        return
+    elif testonly:
+        tell('Messages written to email folder, but nothing will be sent due to option "test".')
         return
     else:
         tell('Will send messages to {} students.'.format(len(messages)))
@@ -271,13 +282,15 @@ def rat_email(file_input, file_path):
     password = getpass.getpass(prompt='Password for the user {} on server {}: '.format(teampy.smtp_settings['from'], teampy.smtp_settings['smtp']))
 
     #create server
+    print('Create client...')
     server = smtplib.SMTP('{}: {}'.format(teampy.smtp_settings['smtp'], teampy.smtp_settings['port']))
     statuses = {}
     try:
+        print('Connecting to server...')
         server.starttls()
         # Login Credentials for sending the mail
         server.login(teampy.smtp_settings['from'], password)
-
+        print('Logged in...')
         # send email
         bar = progressbar.ProgressBar(max_value=len(messages), widgets=[progressbar.Percentage(), progressbar.Bar()])
         for student_id, message in messages.items():
@@ -394,7 +407,8 @@ def grade(file):
 
 @rat.command()
 @click.argument('file', type=click.Path(exists=True))
-def email(file):
+@click.option('--testonly', default=False, help='Only store HTML messages for testing, do not actually send.')
+def email(file, testonly):
     """
     Send feedback to students via email.
     """
