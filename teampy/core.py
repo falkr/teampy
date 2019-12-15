@@ -790,7 +790,7 @@ class Result:
                     return 2, 'Error in line {}: The file needs a Yaml preamble, starting with ---.'.format(linenumber)
             elif state == 'preamble':
                 if line.startswith('---'): # yaml preamble end
-                    preamble = yaml.load('\n'.join(preamble))
+                    preamble = yaml.safe_load('\n'.join(preamble))
                     # assign table to object
                     state = 'results'
                 else:
@@ -1045,7 +1045,7 @@ class Teampy:
         return self.teams
 
     def load_scratch_cards(self, filename):
-        rawcodes = yaml.load(open(filename, 'r', encoding='utf-8'))
+        rawcodes = yaml.safe_load(open(filename, 'r', encoding='utf-8'))
         codes = {}
         for key in rawcodes:
             codes[key] = Solution.create_solution_from_string(rawcodes[key], card_id=key)
