@@ -333,7 +333,7 @@ class Questionaire:
         lines.append('\\end{document}')
         return "".join(lines)
 
-    def write_latex(self, solution_document=None, teams=None, students=None):
+    def write_latex(self, solution_document=None, teams=None, students=None, old_latex=False):
         course, date = '', ''
         page_break = '\\cleardoublepage\n\\newpage\n\n'
         lines = []
@@ -388,7 +388,6 @@ class Questionaire:
         lines.append('\\thumbnewcolumn\n')
 
         # questionaire for each student
-        sort_by = 'team'
         old_thumb = None
         if(students.assigned_to_tables()):
             for student_id in students.get_ids(sort_by='table'):
