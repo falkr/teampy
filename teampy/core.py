@@ -196,9 +196,12 @@ class Question:
         hops = ord(key) - ord('a')
         return np.roll(array, hops).tolist()
 
-    def write_latex(self, number, key):
+    def write_latex(self, number, key, old_latex=False):
         lines = []
-        lines.append('\\paragraph{{Question {}:}}\n'.format(number))
+        if old_latex:
+            lines.append('\\paragraph{{Question {}:}}\n'.format(number))
+        else:
+            lines.append('\\question{{{}}}\n'.format(number))
         lines.append('{}\n'.format(self.question))
         lines.append('\n')
         if self.figure is not None:
@@ -322,6 +325,7 @@ class Questionaire:
         return "".join(lines)
 
     def write_latex(self, solution_document=None, teams=None, students=None):
+        course, date = '', ''
         page_break = '\\cleardoublepage\n\\newpage\n\n'
         lines = []
         # add latex preamble
@@ -365,11 +369,107 @@ class Questionaire:
 
         # questionaire for each team:
         for team_id in teams.get_ids():
-            lines.append('\\teamprefix{{{}}}\n\n'.format(team_id))
+            lines.append('\\teamprefix' + '{{{}}}{{{}}}{{{}}}{{{}}}'.format(team_id, course, self.title, date) + '\n\n')
             solution = solution_document.team_solutions[team_id]
             for question in self.questions:
                 key = solution.answers[question.number-1]
                 lines.append(question.write_latex(question.number, key))
+            lines.append(page_break)
+        # rest the thumb index
+        lines.append('\\thumbnewcolumn\n')
+
+        # questionaire for each student
+        sort_by = 'team'
+        old_thumb = None
+        if(students.assigned_to_tables()):
+            for student_id in students.get_ids(sort_by='table'):
+                name = tex_escape(students.get_name(student_id))
+                team_id = students.get_team(student_id)
+                table = students.get_table(student_id)
+                if old_thumb != table:
+                    lines.append('\\addthumb{}' + '{{{}}}'.format(table) + '{white}{black}\n')
+                lines.append('\\individualprefix' + '{{{}}}{{{}}}{{{}}}{{{}}}{{{}}}{{{}}}{{{}}}'.format(name, student_id, team_id, table, course, self.title, date) + '\n\n')
+                solution = solution_document.student_solutions[student_id]
+                # sort question according to solution for this student
+                index = 0
+                for question_number in solution.questions:
+                    index += 1
+                    question = self.questions[question_number - 1]
+                    key = solution.answers[index - 1]
+                    lines.append(question.write_latex(index, key))
+                lines.append(page_break)
+                old_thumb = table
+        else:
+            for student_id in students.get_ids(sort_by='team'):
+                name = tex_escape(students.get_name(student_id))
+                team_id = students.get_team(student_id)
+                if old_thumb != team_id:
+                    lines.append('\\addthumb{}' + '{{{}}}'.format(team_id) + '{white}{black}\n')
+                lines.append('\\individualprefix' + '{{{}}}{{{}}}{{{}}}{{{}}}{{{}}}{{{}}}{{{}}}'.format(name, student_id, team_id, '', course, self.title, date) + '\n\n')
+                solution = solution_document.student_solutions[student_id]
+                # sort question according to solution for this student
+                index = 0
+                for question_number in solution.questions:
+                    index += 1
+                    question = self.questions[question_number - 1]
+                    key = solution.answers[index - 1]
+                    lines.append(question.write_latex(index, key))
+                lines.append(page_break)
+                old_thumb = team_id                
+        lines.append('\\end{document}')
+
+        # TODO questionaire for each extra sheet
+        return "".join(lines)
+        
+    def write_latex_old(self, solution_document=None, teams=None, students=None):
+        page_break = '\\cleardoublepage\n\\newpage\n\n'
+        lines = []
+        # add latex preamble
+        # abs_file_path = os.path.join(os.path.dirname(__file__), 'resources', 'latex_preamble.tex')
+        abs_file_path = os.path.join(os.path.dirname(__file__), 'latex_preamble_old.tex')
+        with open (abs_file_path, "r", encoding='utf-8') as myfile:
+            preamble = myfile.read() #.replace('\n', '')
+            lines.append(preamble)
+
+        # all question in original order, with 'a' as correct answer
+        for q in self.questions:
+            lines.append(q.write_latex(q.number, 'a', old_latex=True))
+
+        # only print the questionaire for checking it
+        if solution_document==None:
+            lines.append('\\end{document}')
+            return "".join(lines)
+
+        lines.append(page_break)
+
+        # list all solutions on the front page, for all teams
+        lines.append('\\subsubsection*{{Scratchcards for Teams}}\n')
+        for team_id in teams.get_ids():
+            solution = solution_document.team_solutions[team_id]
+            if solution.card_id is None:
+                lines.append('Team {}: {}\\\\\n'.format(team_id, solution.to_string()))
+            else:
+                lines.append('Team {}: {} {}\\\\\n'.format(team_id, solution.card_id, solution.to_string()))
+
+        # list all solution for all students of each team
+        for team_id in teams.get_ids():
+            #lines.append('\\subsubsection*\{Team {}\}\n'.format(team_id))
+            lines.append('\\subsubsection*{{Team {}}}\n'.format(team_id))
+            for student_id in students.get_student_ids_of_team(team_id):
+                name = tex_escape(students.get_name(student_id))
+                solution = solution_document.student_solutions[student_id].to_string()
+                lines.append('{}:{}\\\\\n'.format(name, solution))
+        lines.append(page_break)
+
+        # TODO list solution for extra students
+
+        # questionaire for each team:
+        for team_id in teams.get_ids():
+            lines.append('\\teamprefix{{{}}}\n\n'.format(team_id))
+            solution = solution_document.team_solutions[team_id]
+            for question in self.questions:
+                key = solution.answers[question.number-1]
+                lines.append(question.write_latex(question.number, key, old_latex=True))
             lines.append(page_break)
 
         # questionaire for each student
@@ -391,7 +491,7 @@ class Questionaire:
                 index += 1
                 question = self.questions[question_number - 1]
                 key = solution.answers[index - 1]
-                lines.append(question.write_latex(index, key))
+                lines.append(question.write_latex(index, key, old_latex=True))
             lines.append(page_break)
 
         lines.append('\\end{document}')
@@ -573,7 +673,7 @@ class ResultLine:
 
     def check(self):
         team = ''
-        if self.type is 'student':
+        if self.type == 'student':
             team = self.students.get_team(self.result_id)
             if team is None:
                 team = ''
@@ -604,7 +704,7 @@ class ResultLine:
                 if self.result.count(letter) != int(self.checksum[index]):
                     tell('File {}, line {}: The checksum for student with id {}{} is inconsistent.'.format(self.filename, self.line_number, self.result_id, team), 'error')
                     return False
-        elif self.type is 'team':
+        elif self.type == 'team':
             pass
             # count correct results
 
@@ -617,7 +717,7 @@ class ResultLine:
         for index, question in enumerate(self.solution.questions):
             if index < len(self.result):
                 answer_given = self.result[index]
-                if answer_given is 'x':
+                if answer_given == 'x':
                     self.normalized_results[int(question)] = 'x'
                 else: 
                     answer_given_ord = ord(answer_given) - ord('a') # 0, 1, 2,...
@@ -706,7 +806,7 @@ class Result:
                             unique_ids.append(result_line.result_id)
         # finished parsing the file
 
-        if state is not 'results':
+        if state != 'results':
             tell('The results file is not complete.', 'error')
 
         # check the preamble
@@ -843,7 +943,7 @@ class Result:
                 if result.valid:
                     for question in range(1,len(result.normalized_results) + 1):
                         answer = result.normalized_results[question]
-                        if answer is not 'x':
+                        if answer != 'x':
                             df.loc[question, answer] += 1
             return df
 

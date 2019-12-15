@@ -72,14 +72,15 @@ def _load_rat_file(file_input):
     return questionaire
 
 
-def write_latex(latex, file_path):
+def write_latex(latex, file_path, old_latex=False):
     tex_file_name = os.path.splitext(os.path.basename(file_path))[0] + '.tex'
     tex_file_path = os.path.join(os.path.dirname(file_path), tex_file_name)
     # TODO check if file already exists
     with open(tex_file_path, "w", encoding='utf-8') as file:
         file.write(latex)
-    # copy also ratbox figures
-    copy_figures(os.path.dirname(file_path))
+    if old_latex:
+        # copy also ratbox figures
+        copy_figures(os.path.dirname(file_path))
     tell('Write LaTeX into file {}.'.format(tex_file_path))
 
 def rat_check(file_input, file_path):
@@ -110,7 +111,7 @@ def parallel_file_path(file_path, alternative_extension):
     tail_base = tail.split('.')[0]
     return os.path.join(os.path.dirname(file_path), '{}.{}'.format(tail_base, alternative_extension))
 
-def rat_print(file_input, file_path, team_solution):
+def rat_print(file_input, file_path, team_solution, old_latex=False):
     """
     Create a document with RATs for all students and all teams.
     """
@@ -138,8 +139,8 @@ def rat_print(file_input, file_path, team_solution):
     sd.store(solutions_file_path)
     tell('Write solutions into file {}.'.format(solutions_file_path))
 
-    latex = questionaire.write_latex(sd, t.teams, t.students)
-    write_latex(latex, file_path)
+    latex = questionaire.write_latex(sd, t.teams, t.students, old_latex)
+    write_latex(latex, file_path, old_latex=old_latex)
 
     tell('Done! ')
     print('   As a next step, print the LaTeX document and do the RAT.')

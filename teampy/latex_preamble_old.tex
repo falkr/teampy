@@ -2,7 +2,7 @@
 \usepackage[utf8]{inputenc}
 
 \usepackage[left=1cm, right=1cm, top=1cm, bottom=1cm, portrait, a4paper]{geometry}
-\setlength{\columnsep}{0.8cm}
+\setlength{\columnsep}{1cm}
 
 \usepackage[parfill]{parskip}    % Activate to begin paragraphs with an empty line rather than an indent
 
@@ -85,9 +85,9 @@
 \vspace*{4cm}%
 \addthumb{}{#1}{white}{black}
 \begin{tabular}{@{}ll}%
-\ifthenelse{\not\equal{#2}{}}{Course: & \textbf{#2}\\}{}%
+Course: & \textbf{#2} \\
 RAT: & \textbf{#3} \\
-\ifthenelse{\not\equal{#4}{}}{Date: & \textbf{#4}\\}{}%
+Date: & \textbf{#4} \\
 Team: & \textbf{#1}\\
 \end{tabular}\\%
 \rule{\linewidth}{0.4pt}
@@ -102,15 +102,18 @@ Team: & \textbf{#1}\\
 % #5 course
 % #6 rat
 % #7 date
+table
 \begin{tabular}{@{}ll}
-\ifthenelse{\not\equal{#5}{}}{Course: & \textbf{#5}\\}{}%
+Course: & \textbf{#5} \\
 RAT: & \textbf{#6} \\
-\ifthenelse{\not\equal{#7}{}}{Date: & \textbf{#7}\\}{}%
+Date: & \textbf{#7} \\
       &   \\
 Name: & \textbf{#1} --- \texttt{#2}\\
 Team: & \textbf{#3} \\
-\ifthenelse{\not\equal{#4}{}}{Table: & \textbf{#4}\\}{}%
+\ifthenelse{\not\equal{#4}{}}{%
+Table: & \textbf{#4}\\}{}%
 \end{tabular}\vspace{1em}
+\addthumb{}{#3}{white}{black}
 %
 \rule{\linewidth}{0.4pt}
 \textsf{\textbf{Instructions:}}
@@ -155,4 +158,3 @@ Team: & \textbf{#3} \\
 \usepackage[width=1cm]{thumbs}
 
 \begin{document}
-\pagenumbering{arabic}
