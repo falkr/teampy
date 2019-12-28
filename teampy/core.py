@@ -423,7 +423,7 @@ class Questionaire:
                     key = solution.answers[index - 1]
                     lines.append(question.write_latex(index, key))
                 lines.append(page_break)
-                old_thumb = team_id                
+                old_thumb = team_id
         lines.append('\\end{document}')
 
         # TODO questionaire for each extra sheet

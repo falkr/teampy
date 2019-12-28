@@ -1,6 +1,5 @@
 import teampy
-import os
-from colorama import init, Fore
+from colorama import init
 
 import click
 
@@ -21,7 +20,7 @@ def teampy():
     pass
 
 def create_scratch_card_file():
-    s = ('# This file contains codes for scratch cards, so that you\n'
+    _ = ('# This file contains codes for scratch cards, so that you\n'
          '# do not have to read them in every time you use them.\n'
          '# Since we do not know the solutions on your scratch cards, you\n'
          '# have to edit this file on your own.\n'
@@ -50,4 +49,4 @@ def setup(example):
 
 
 if __name__ == "__main__":
-    rat()
+    pass
