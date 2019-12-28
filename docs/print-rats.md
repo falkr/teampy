@@ -15,5 +15,5 @@ If you have defined the solutions of existing scratch cards in the [scratch card
 
 The result of this operation are two files:
 
-* The file `questions.tex`. This is a LaTeX file that you should translate into PDF with your LaTeX tools.
-* The file `solutions.teampy`. This file contains the correct solution for each team and student. Teampy needs this file later when the RATs are evaluated, so do not delete this file.
+* The file `questions.pdf` with the quizzes ready for printing. If you use the command line option `--nopdf`, Teampy creates a *.tex file instead that you can translate with LaTeX.
+* The file `solutions.teampy`. This file contains the correct solution for each team and student. Teampy needs this file later when the RATs are evaluated, so **do not delete this file.**
