@@ -350,7 +350,7 @@ class Questionaire:
             lines.append(q.write_latex(q.number, 'a'))
 
         # only print the questionaire for checking it
-        if solution_document==None:
+        if solution_document is None:
             lines.append('\\end{document}')
             return "".join(lines)
 
