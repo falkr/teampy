@@ -274,7 +274,7 @@ class Questionaire:
                     return 2, 'Error in line {}: The file needs a Yaml preamble, starting with ---.'.format(linenumber)
             elif state == 'preamble':
                 if line.startswith('---'): # yaml preamble end
-                    preamble = yaml.load('\n'.join(preamble))
+                    preamble = yaml.safe_load('\n'.join(preamble))
                     if 'title' not in preamble:
                         return 2, 'The preamble at the beginning must contain a line with an attribute \'title\'.'
                         self.title = None
@@ -1053,7 +1053,7 @@ class Teampy:
         return codes
 
     def load_smtp_settings(self, filename):
-        settings = yaml.load(open(filename, 'r', encoding='utf-8'))
+        settings = yaml.safe_load(open(filename, 'r', encoding='utf-8'))
         if 'from' not in settings:
             tell('The smtp settings need to include attribute "from" with your email.', 'error')
             # TODO check if 'from' is a valid email, at least syntactically
