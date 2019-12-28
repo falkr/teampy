@@ -70,8 +70,9 @@ class Students:
         self.df = self.df.set_index('id')
         if all(self.df.team.apply(lambda team: team.isdigit())):
             self.df['team_int'] = self.df.team.astype(int)
-        if all(self.df.table.apply(lambda table: table.isdigit())):
-            self.df['table_int'] = self.df.table.astype(int)
+        if 'table' in self.df.columns:
+            if all(self.df.table.apply(lambda table: table.isdigit())):
+                self.df['table_int'] = self.df.table.astype(int)
 
     def assigned_to_tables(self):
         return 'table' in self.df.columns
