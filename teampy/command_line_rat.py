@@ -14,6 +14,7 @@ import smtplib
 from smtplib import SMTPHeloError, SMTPRecipientsRefused, SMTPNotSupportedError, SMTPAuthenticationError, SMTPSenderRefused, SMTPDataError, SMTPException
 import getpass
 import progressbar
+from latex import build_pdf
 
 def print_teampy():
     print('')
@@ -79,6 +80,7 @@ def write_latex(latex, file_path, old_latex=False):
         copy_figures(os.path.dirname(file_path))
     tell('Write LaTeX into file {}.'.format(tex_file_path))
 
+
 def rat_check(file_input, file_path):
     """
     Read the RAT questionaire, check for consistency, print it as tex document,
@@ -107,7 +109,7 @@ def parallel_file_path(file_path, alternative_extension):
     tail_base = tail.split('.')[0]
     return os.path.join(os.path.dirname(file_path), '{}{}'.format(tail_base, alternative_extension))
 
-def rat_print(file_input, file_path, team_solution, old_latex=False):
+def rat_print(file_input, file_path, team_solution, old_latex=False, pdf=True):
     """
     Create a document with RATs for all students and all teams.
     """
@@ -136,10 +138,16 @@ def rat_print(file_input, file_path, team_solution, old_latex=False):
     tell('Write solutions into file {}.'.format(solutions_file_path))
 
     latex = questionaire.write_latex(sd, t.teams, t.students, old_latex)
-    write_latex(latex, file_path, old_latex=old_latex)
-
-    tell('Done! ')
-    print('   As a next step, print the LaTeX document and do the RAT.')
+    if pdf:
+        pdf_file_name = os.path.splitext(os.path.basename(file_path))[0] + '.pdf'
+        tell('Creating PDF...')
+        pdf = build_pdf(latex)
+        pdf.save_to(pdf_file_name)
+        tell('Done!')
+    else:
+        write_latex(latex, file_path, old_latex=old_latex)
+        tell('Done!')
+        print('   As a next step, print the LaTeX document and do the RAT.')
 
 
 def rat_grade(file_input, file_path):
@@ -383,14 +391,16 @@ def trial(file):
 @rat.command(name='print')
 #@click.argument('file', type=click.File('r'))
 @click.argument('file', type=click.Path(exists=True))
+@click.option('--nopdf', default=False, is_flag=True, help='Do not create PDF, just latex source.')
 @click.option('--teamsolution', prompt='Team solution', help='Code of the team scratch card or team solution.')
-def print_(file, teamsolution):
+def print_(file, teamsolution, nopdf):
     """
     Print a RAT before class.
     """
     # TODO if no valid team solution code is shown, add prompt that also shows which scratch cards are available
     print_teampy()
-    rat_print(click.open_file(file, encoding='utf-8'), file, teamsolution)
+    pdf = not nopdf
+    rat_print(click.open_file(file, encoding='utf-8'), file, teamsolution, pdf=pdf)
 
 @rat.command()
 @click.argument('file', type=click.Path(exists=True))
