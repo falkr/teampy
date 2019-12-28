@@ -42,10 +42,6 @@ def rat_create():
 
     from prompt_toolkit.shortcuts import input_dialog
 
-    text = input_dialog(
-    title='Input dialog example',
-    text='Please type your name:')
-
     # create directory
     #number = int(prompt('Number of the RAT: ', validator=NumberValidator(), key_bindings=bindings))
     number = prompt('Number of the RAT: ', validator=NumberValidator(), key_bindings=bindings)
@@ -214,7 +210,7 @@ def create_message(student_id, row, result, teampy):
 </html>
 """.format(row['score'], row['comment'])
     msg.attach(MIMEText(html, 'html'))
-    return msg    
+    return msg
 
 
 def rat_email(file_input, file_path, testonly):
@@ -266,8 +262,8 @@ def rat_email(file_input, file_path, testonly):
     for student_id, message in messages.items():
         html_file_path = os.path.join(os.path.dirname(file_path), 'emails/{}.html'.format(student_id))
         with open(html_file_path, "w") as html_file:
-            html_file.write(message.as_string()) 
-    
+            html_file.write(message.as_string())
+
     if len(messages)==0:
         tell('There is nothing to send.')
         return
