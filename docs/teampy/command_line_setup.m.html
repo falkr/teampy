@@ -3,11 +3,8 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 
-    <title>teampy API documentation</title>
-    <meta name="description" content="Module `teampy` provides support to manage readiness assurance tests (rats)
-in Python.
-
-## Contribut..." />
+    <title>teampy.command_line_setup API documentation</title>
+    <meta name="description" content="" />
 
   <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,300' rel='stylesheet' type='text/css'>
   
@@ -1044,15 +1041,16 @@ table {
     <h1>Index</h1>
     <ul id="index">
 
+    <li class="set"><h3><a href="#header-functions">Functions</a></h3>
+      
+  <ul>
+    <li class="mono"><a href="#teampy.command_line_setup.create_scratch_card_file">create_scratch_card_file</a></li>
+    <li class="mono"><a href="#teampy.command_line_setup.print_teampy">print_teampy</a></li>
+  </ul>
 
-
-    <li class="set"><h3><a href="#header-submodules">Sub-modules</a></h3>
-      <ul>
-        <li class="mono"><a href="command_line_rat.m.html">teampy.command_line_rat</a></li>
-        <li class="mono"><a href="command_line_setup.m.html">teampy.command_line_setup</a></li>
-        <li class="mono"><a href="core.m.html">teampy.core</a></li>
-      </ul>
     </li>
+
+
     </ul>
   </div>
 
@@ -1064,44 +1062,64 @@ table {
 
 
   <header id="section-intro">
-  <h1 class="title"><span class="name">teampy</span> module</h1>
-  <p>Module <code>teampy</code> provides support to manage readiness assurance tests (rats)
-in Python.</p>
-<h2>Contributing</h2>
-<p><code>teampy</code> <a href="https://github.com/falkr/teams">is on GitHub</a>. Pull
-requests and bug reports are welcome.</p>
-<h2>Dependencies</h2>
-<ul>
-<li>pyaml</li>
-<li>xlrd</li>
-</ul>
+  <h1 class="title"><span class="name">teampy.command_line_setup</span> module</h1>
   
-  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-teampy', this);">Show source &equiv;</a></p>
-  <div id="source-teampy" class="source">
-    <div class="codehilite"><pre><span></span><span class="sd">&quot;&quot;&quot;Module `teampy` provides support to manage readiness assurance tests (rats)</span>
-<span class="sd">in Python.</span>
-
-<span class="sd">## Contributing</span>
-
-<span class="sd">`teampy` [is on GitHub](https://github.com/falkr/teams). Pull</span>
-<span class="sd">requests and bug reports are welcome.</span>
-
-<span class="sd">## Dependencies</span>
-
-<span class="sd">* pyaml</span>
-<span class="sd">* xlrd</span>
-
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">dirname</span>
+  
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-teampy.command_line_setup', this);">Show source &equiv;</a></p>
+  <div id="source-teampy.command_line_setup" class="source">
+    <div class="codehilite"><pre><span></span><span class="kn">import</span> <span class="nn">teampy</span>
+<span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">from</span> <span class="nn">colorama</span> <span class="kn">import</span> <span class="n">init</span><span class="p">,</span> <span class="n">Fore</span>
-<span class="kn">from</span> <span class="nn">teampy.core</span> <span class="kn">import</span> <span class="n">SolutionDocument</span><span class="p">,</span> <span class="n">Students</span><span class="p">,</span> <span class="n">Teams</span><span class="p">,</span> <span class="n">Solution</span><span class="p">,</span> <span class="n">Result</span><span class="p">,</span> <span class="n">Questionaire</span><span class="p">,</span> <span class="n">Teampy</span><span class="p">,</span> <span class="n">RATContext</span><span class="p">,</span> <span class="n">tell</span>
 
-<span class="n">init</span><span class="p">(</span><span class="n">autoreset</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="kn">import</span> <span class="nn">click</span>
 
-<span class="n">__version__</span> <span class="o">=</span> <span class="s1">&#39;0.1.26&#39;</span>
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">The current version.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="k">def</span> <span class="nf">print_teampy</span><span class="p">():</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39; _                                   &#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;| |_ ___  __ _ _ __ ___  _ __  _   _ &#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;| __/ _ \/ _` | </span><span class="se">\&#39;</span><span class="s1">_ ` _ \| </span><span class="se">\&#39;</span><span class="s1">_ \| | | |&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;| ||  __/ (_| | | | | | | |_) | |_| |&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39; \__\___|\__,_|_| |_| |_| .__/ \__, |&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;                        |_|    |___/ &#39;</span><span class="p">)</span>
+
+<span class="nd">@click.group</span><span class="p">()</span>
+<span class="nd">@click.version_option</span><span class="p">(</span><span class="n">teampy</span><span class="o">.</span><span class="n">__version__</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">teampy</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Teampy is a collection of tools for team-based learning.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span>
+
+<span class="k">def</span> <span class="nf">create_scratch_card_file</span><span class="p">():</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;# This file contains codes for scratch cards, so that you</span><span class="se">\n</span><span class="s1">&#39;</span>
+         <span class="s1">&#39;# do not have to read them in every time you use them.</span><span class="se">\n</span><span class="s1">&#39;</span>
+         <span class="s1">&#39;# Since we do not know the solutions on your scratch cards, you</span><span class="se">\n</span><span class="s1">&#39;</span>
+         <span class="s1">&#39;# have to edit this file on your own.</span><span class="se">\n</span><span class="s1">&#39;</span>
+         <span class="s1">&#39;#</span><span class="se">\n</span><span class="s1">&#39;</span>
+         <span class="s1">&#39;# All lines preceeded by a #, like these, are a comments.</span><span class="se">\n</span><span class="s1">&#39;</span>
+         <span class="s1">&#39;#</span><span class="se">\n</span><span class="s1">&#39;</span>
+         <span class="s1">&#39;# This is an example for an entry for a scratch card with name &quot;F017&quot;:</span><span class="se">\n</span><span class="s1">&#39;</span>
+         <span class="s1">&#39;# F017: b c b a c d a c d c</span><span class="se">\n</span><span class="s1">&#39;</span>
+         <span class="s1">&#39;# Simply add your own cards in the lines below, but without any # in front.</span><span class="se">\n</span><span class="s1">&#39;</span>
+         <span class="p">)</span>
+
+<span class="nd">@teampy.command</span><span class="p">()</span>
+<span class="nd">@click.option</span><span class="p">(</span><span class="s1">&#39;--example&#39;</span><span class="p">,</span> <span class="n">is_flag</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;add example content&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="n">example</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create default setup for a course.</span>
+
+<span class="sd">    This command creates the file skelettons for students, teams</span>
+<span class="sd">    and scratch cards.</span>
+
+<span class="sd">    If the --example option is specified, the command also populates the files</span>
+<span class="sd">    with some content so you can play with the tool before creating your own</span>
+<span class="sd">    course.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="s1">&#39;Setup a new course.&#39;</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">rat</span><span class="p">()</span>
 </pre></div>
 
   </div>
@@ -1110,27 +1128,66 @@ requests and bug reports are welcome.</p>
 
   <section id="section-items">
 
-
-
-    <h2 class="section-title" id="header-submodules">Sub-modules</h2>
-      <div class="item">
-      <p class="name"><a href="command_line_rat.m.html">teampy.command_line_rat</a></p>
+    <h2 class="section-title" id="header-functions">Functions</h2>
       
+  <div class="item">
+    <div class="name def" id="teampy.command_line_setup.create_scratch_card_file">
+    <p>def <span class="ident">create_scratch_card_file</span>(</p><p>)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-teampy.command_line_setup.create_scratch_card_file', this);">Show source &equiv;</a></p>
+  <div id="source-teampy.command_line_setup.create_scratch_card_file" class="source">
+    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">create_scratch_card_file</span><span class="p">():</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;# This file contains codes for scratch cards, so that you</span><span class="se">\n</span><span class="s1">&#39;</span>
+         <span class="s1">&#39;# do not have to read them in every time you use them.</span><span class="se">\n</span><span class="s1">&#39;</span>
+         <span class="s1">&#39;# Since we do not know the solutions on your scratch cards, you</span><span class="se">\n</span><span class="s1">&#39;</span>
+         <span class="s1">&#39;# have to edit this file on your own.</span><span class="se">\n</span><span class="s1">&#39;</span>
+         <span class="s1">&#39;#</span><span class="se">\n</span><span class="s1">&#39;</span>
+         <span class="s1">&#39;# All lines preceeded by a #, like these, are a comments.</span><span class="se">\n</span><span class="s1">&#39;</span>
+         <span class="s1">&#39;#</span><span class="se">\n</span><span class="s1">&#39;</span>
+         <span class="s1">&#39;# This is an example for an entry for a scratch card with name &quot;F017&quot;:</span><span class="se">\n</span><span class="s1">&#39;</span>
+         <span class="s1">&#39;# F017: b c b a c d a c d c</span><span class="se">\n</span><span class="s1">&#39;</span>
+         <span class="s1">&#39;# Simply add your own cards in the lines below, but without any # in front.</span><span class="se">\n</span><span class="s1">&#39;</span>
+         <span class="p">)</span>
+</pre></div>
+
+  </div>
+</div>
+
+  </div>
+  
+      
+  <div class="item">
+    <div class="name def" id="teampy.command_line_setup.print_teampy">
+    <p>def <span class="ident">print_teampy</span>(</p><p>)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-teampy.command_line_setup.print_teampy', this);">Show source &equiv;</a></p>
+  <div id="source-teampy.command_line_setup.print_teampy" class="source">
+    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">print_teampy</span><span class="p">():</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39; _                                   &#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;| |_ ___  __ _ _ __ ___  _ __  _   _ &#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;| __/ _ \/ _` | </span><span class="se">\&#39;</span><span class="s1">_ ` _ \| </span><span class="se">\&#39;</span><span class="s1">_ \| | | |&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;| ||  __/ (_| | | | | | | |_) | |_| |&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39; \__\___|\__,_|_| |_| |_| .__/ \__, |&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;                        |_|    |___/ &#39;</span><span class="p">)</span>
+</pre></div>
+
+  </div>
+</div>
+
+  </div>
   
 
-      </div>
-      <div class="item">
-      <p class="name"><a href="command_line_setup.m.html">teampy.command_line_setup</a></p>
-      
-  
 
-      </div>
-      <div class="item">
-      <p class="name"><a href="core.m.html">teampy.core</a></p>
-      
-  
-
-      </div>
   </section>
 
     </article>

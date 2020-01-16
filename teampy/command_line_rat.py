@@ -1,4 +1,5 @@
 import os
+import errno
 import teampy
 import pandas as pd
 from teampy import Questionaire, SolutionDocument, Students, Teams, Solution, Result, Teampy, RATContext, tell
@@ -34,6 +35,16 @@ def copy_figures(rat_directory):
     for filename in ['rat-box.pdf', 'scratch.pdf']:
         file = os.path.join(os.path.dirname(__file__), filename)
         shutil.copy(file, figures)
+        
+def make_sure_path_exists(path):
+    """
+    Ensures that all directories for a given path exist.
+    """
+    try:
+        os.makedirs(path)
+    except OSError as exception:
+        if exception.errno != errno.EEXIST:
+            raise
 
 def rat_create():
     """
@@ -226,7 +237,7 @@ def rat_email(file_input, file_path, testonly):
     Send the results of a RAT to students via email.
     """
     if not file_path.endswith('.xlsx'):
-        tell('This command only takes an *.xlsx as input.', 'error')
+        tell('This command only takes an *.xlsx file as input.', 'error')
         return
 
     teampy = Teampy()
@@ -267,19 +278,21 @@ def rat_email(file_input, file_path, testonly):
             messages[student_id] = create_message(student_id, row, result, teampy)
 
     # store the messages
+    make_sure_path_exists('emails')
     for student_id, message in messages.items():
         html_file_path = os.path.join(os.path.dirname(file_path), 'emails/{}.html'.format(student_id))
         with open(html_file_path, "w") as html_file:
-            html_file.write(message.as_string())
+            #html_file.write(message.as_string())
+            html_file.write(message.get_payload()[0].get_payload())
 
     if len(messages)==0:
         tell('There is nothing to send.')
         return
     elif testonly:
-        tell('Messages written to email folder, but nothing will be sent due to option "test".')
+        tell('Messages written to email folder, but nothing will be sent due to option --testonly.')
         return
     else:
-        tell('Will send messages to {} students.'.format(len(messages)))
+        tell('Will send messages to {} students. (Press CTRL+C to quit and not send anything. Restart with option --testonly to only store a preview of the emails.)'.format(len(messages)))
 
     # connect to SMTP server
     print('\n')
@@ -413,7 +426,7 @@ def grade(file):
 
 @rat.command()
 @click.argument('file', type=click.Path(exists=True))
-@click.option('--testonly', default=False, help='Only store HTML messages for testing, do not actually send.')
+@click.option('--testonly', default=False, is_flag=True, help='Only store HTML messages for testing, do not actually send.')
 def email(file, testonly):
     """
     Send feedback to students via email.

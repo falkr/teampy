@@ -13,7 +13,11 @@ Use the following command:
 The results file is the one Teampy created when grading the RAT. 
 This also means it only sends an email to the students that participated in that specific RAT.
 
+You can specify with the flag `--testonly` that Teampy is just storing HTML files that contain the email contents in a folder called *emails*. 
 
+    rat email results.xlsx --testonly
+
+In this way you can have a look at the email before anything is sent out.
 
 
 ## About Sending Email
