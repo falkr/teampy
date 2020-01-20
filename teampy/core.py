@@ -211,7 +211,9 @@ class Question:
         if old_latex:
             lines.append('\\paragraph{{Question {}:}}\n'.format(number))
         else:
-            lines.append('\\question{{{}}}\n'.format(number))
+            lines.append('\\vbox{{\\question{{{}}}\n'.format(number))
+            #lines.append('\\vtop{{\\question{{{}}}\n'.format(number))
+            #lines.append('\\question{{{}}}\n'.format(number))
         lines.append('{}\n'.format(self.question))
         lines.append('\n')
         if self.figure is not None:
@@ -221,7 +223,8 @@ class Question:
         lines.append('\\begin{enumerate}[label=\\textbf{{\\Alph*}},labelindent=0pt, labelsep=1.5em, parsep=0.2em]\n')
         for answer in self.get_rolled_answers(key):
             lines.append('\\item {}\n'.format(answer))
-        lines.append('\\end{enumerate}\n')
+        lines.append('\\end{enumerate}}\n')
+        #lines.append('\\end{enumerate}\n')
         return "".join(lines)
 
 def test():
