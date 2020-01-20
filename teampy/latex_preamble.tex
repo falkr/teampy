@@ -76,13 +76,13 @@
 % #2 course
 % #3 rat
 % #4 date
-\vspace*{4cm}%
+\vspace*{5cm}%
 \begin{center}
 \begin{minipage}{0.5\linewidth}
 \emph{Keep the scratch card attached to the paper and hand in both of them.}
 \end{minipage}
 \end{center}
-\vspace*{4cm}%
+\vspace*{5cm}%
 \addthumb{}{#1}{white}{black}
 \begin{tabular}{@{}ll}%
 \ifthenelse{\not\equal{#2}{}}{Course: & \textbf{#2}\\}{}%
@@ -91,7 +91,7 @@ RAT: & \textbf{#3} \\
 Team: & \textbf{#1}\\
 \end{tabular}\\%
 \rule{\linewidth}{0.4pt}
-\vspace{2cm}
+\vfill
 }%
 
 \newcommand{\individualprefix}[7]{%
@@ -131,7 +131,7 @@ Team: & \textbf{#3} \\
 \begin{tabularx}{\linewidth}{@{}XXXXXXXXXX}
 \nbox{A} & \nbox{B} & \nbox{C} & \nbox{D}   & & & & & & \\
 \end{tabularx}
-\vspace{2cm}
+\vfill
 }%
 
 % pandoc creates figures that float away, so we override and set position to H.
@@ -148,11 +148,13 @@ Team: & \textbf{#3} \\
 \usepackage[sfdefault]{biolinum}
 
 \newcommand{\question}[1]{
+\vspace{10pt}
+\vfill
 \rule{\linewidth}{0.4pt}
 \textsf{\textbf{Question #1:}}
 }
 
-\usepackage[width=1cm]{thumbs}
+\usepackage[width=0.8cm]{thumbs}
 
 \begin{document}
 \pagenumbering{arabic}
