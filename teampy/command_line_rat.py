@@ -152,7 +152,9 @@ def rat_print(file_input, file_path, team_solution, old_latex=False, pdf=True):
     if pdf:
         pdf_file_name = os.path.splitext(os.path.basename(file_path))[0] + '.pdf'
         tell('Creating PDF...')
-        pdf = build_pdf(latex)
+        # empty directory for tex reasons...
+        current_dir = os.path.abspath(os.path.dirname(file_path))
+        pdf = build_pdf(latex, texinputs=[current_dir, ''])
         pdf.save_to(pdf_file_name)
         tell('Done!')
     else:

@@ -18,7 +18,7 @@ from teampy.core import SolutionDocument, Students, Teams, Solution, Result, Que
 
 init(autoreset=True)
 
-__version__ = '0.1.26'
+__version__ = '0.1.27'
 """
 The current version.
 """
