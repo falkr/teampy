@@ -788,7 +788,8 @@ class Result:
                 if line.startswith('---'): # yaml preamble start
                     state = 'preamble'
                 else:
-                    return 2, 'Error in line {}: The file needs a Yaml preamble, starting with ---.'.format(linenumber)
+                    tell('Error in line {}: The results file needs a preamble, starting with ---.\nExample:\n---\nname: RAT1\ndate: 2018-06-28\n---'.format(line_number))
+                    return 0, 0
             elif state == 'preamble':
                 if line.startswith('---'): # yaml preamble end
                     preamble = yaml.safe_load('\n'.join(preamble))
