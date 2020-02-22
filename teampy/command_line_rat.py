@@ -1,5 +1,6 @@
 import os
 import errno
+from html import escape
 import teampy
 import pandas as pd
 from datetime import date
@@ -193,12 +194,18 @@ def rat_grade(file_input, file_path):
     result.store_results_html(results_file_path)
     result.stats(filename=parallel_file_path(file_path, '_stats.html'))
 
+def escape_html_entities(string):
+    return string.encode('ascii', 'xmlcharrefreplace').decode('UTF-8')
+
 def create_message(student_id, row, result, teampy):
     msg = MIMEMultipart()
     msg['From'] = teampy.smtp_settings['from']
     msg['To'] = row['email']
     # TODO here the course code would be nice to have
     msg['Subject'] = 'RAT Feedback'
+    firstname = escape_html_entities(row['firstname'])
+    lastname = escape_html_entities(row['lastname'])
+    student_id = escape_html_entities(student_id)
     html = """\
 <html>
   <head></head>
@@ -211,7 +218,7 @@ def create_message(student_id, row, result, teampy):
       <tr><td>Team:</td><td><code>{}</code></td><tr>
       <tr><td>RAT:</td><td><code>{}</code></td><tr>
       <tr><td>Date:</td><td><code>{}</code></td><tr>
-""".format(row['firstname'], row['firstname'], row['lastname'], student_id, row['team'], result.name, result.date)
+""".format(firstname, firstname, lastname, student_id, row['team'], result.name, result.date)
     html = html + """\
       <tr><td>Individual Answer:&nbsp;</td><td><code>{}</code></td><tr>
       <tr><td>Correct Solution:</td><td><code>{}</code></td><tr>
