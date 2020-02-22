@@ -2,6 +2,7 @@ import os
 import errno
 import teampy
 import pandas as pd
+from datetime import date
 from teampy import Questionaire, SolutionDocument, Students, Teams, Solution, Result, Teampy, RATContext, tell
 from colorama import init, Fore, Style
 import click
@@ -405,7 +406,7 @@ def trial(file):
 
 @rat.command(name='print')
 #@click.argument('file', type=click.File('r'))
-@click.argument('file', type=click.Path(exists=True))
+@click.argument('file', type=click.Path(exists=True), required=False)
 @click.option('--nopdf', default=False, is_flag=True, help='Do not create PDF, just latex source.')
 @click.option('--teamsolution', prompt='Team solution', help='Code of the team scratch card or team solution.')
 def print_(file, teamsolution, nopdf):
@@ -415,16 +416,41 @@ def print_(file, teamsolution, nopdf):
     # TODO if no valid team solution code is shown, add prompt that also shows which scratch cards are available
     print_teampy()
     pdf = not nopdf
-    rat_print(click.open_file(file, encoding='utf-8'), file, teamsolution, pdf=pdf)
+    if file is None:
+        file = os.path.join(os.getcwd(), 'questions.txt')
+        if os.path.exists(file):
+            if click.confirm('Found file {}. Do you want to print it?'.format(file)):
+                rat_print(click.open_file(file, encoding='utf-8'), file, teamsolution, pdf=pdf)
+    else:
+        rat_print(click.open_file(file, encoding='utf-8'), file, teamsolution, pdf=pdf)
+
+
+def rat_setup_results_file(result_file):
+    with open(result_file, "w", encoding='utf-8') as file:
+        file.write(('---\n'
+         'name: RAT\n'
+         'date: {}\n'
+         '---\n'.format(date.today().strftime("%Y-%m-%d"))))
+
 
 @rat.command()
-@click.argument('file', type=click.Path(exists=True))
+@click.argument('file', type=click.Path(exists=True), required=False)
 def grade(file):
     """
     Evaluate a RAT during class.
     """
     print_teampy()
-    rat_grade(click.open_file(file, encoding='utf-8'), file)
+    if file is None:
+        file = os.path.join(os.getcwd(), 'results.txt')
+        if os.path.exists(file):
+            if click.confirm('Found file {}. Do you want to grade it?'.format(file)):
+                rat_grade(click.open_file(file, encoding='utf-8'), file)
+        else:
+            if click.confirm('No results file found or specified. Should we create an empty one?'.format(file)):
+                rat_setup_results_file(file) 
+    else:
+        rat_grade(click.open_file(file, encoding='utf-8'), file)
+
 
 @rat.command()
 @click.argument('file', type=click.Path(exists=True))
