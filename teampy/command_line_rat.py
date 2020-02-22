@@ -24,7 +24,7 @@ def print_teampy():
     print('| __/ _ \/ _` | \'_ ` _ \| \'_ \| | | |')
     print('| ||  __/ (_| | | | | | | |_) | |_| |')
     print(' \__\___|\__,_|_| |_| |_| .__/ \__, |')
-    print('                        |_|    |___/ ')
+    print('                        |_|    |___/ {}'.format(teampy.__version__))
     print('')
 
 def copy_figures(rat_directory):
