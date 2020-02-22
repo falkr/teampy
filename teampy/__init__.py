@@ -6,10 +6,6 @@ in Python.
 `teampy` [is on GitHub](https://github.com/falkr/teams). Pull
 requests and bug reports are welcome.
 
-## Dependencies
-
-* pyaml
-* xlrd
 
 """
 from os.path import dirname
@@ -18,7 +14,7 @@ from teampy.core import SolutionDocument, Students, Teams, Solution, Result, Que
 
 init(autoreset=True)
 
-__version__ = '0.1.27'
+__version__ = '0.1.28'
 """
 The current version.
 """
