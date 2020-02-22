@@ -988,7 +988,7 @@ class Result:
             answers = question.get_answers()
             for i in range(0,len(scores)):
                 if i == 0:  
-                    lines.append('<li class="list-group-item"><div>{} <small class="text-muted">(This is the right answer.)</small></div>'.format(answers[i]))
+                    lines.append('<li class="list-group-item"><div>{} <small class="text-muted">(This is the best answer.)</small></div>'.format(answers[i]))
                     bar = 'bg-success' 
                 else:
                     lines.append('<li class="list-group-item"><div>{}</div>'.format(answers[i]))
