@@ -66,7 +66,7 @@ def tex_escape(text):
 
 class Students:
     def __init__(self, filename):
-        self.df = pd.read_excel(filename, dtype={'id': str, 'team': str, 'table':str})
+        self.df = pd.read_excel(filename, converters={'id': str, 'team': str, 'table':str})
         self.df = self.df.set_index('id')
         if all(self.df.team.apply(lambda team: team.isdigit())):
             self.df['team_int'] = self.df.team.astype(int)
