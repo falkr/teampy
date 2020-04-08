@@ -2,7 +2,7 @@ from distutils.core import setup
 setup(
   name='teampy',
   packages=['teampy'],
-  version='0.1.28',
+  version='0.1.29',
   description='Tools for Team-Based Learning',
   install_requires=['pyyaml>=5.3', 'colorama>=0.4.3', 'click>=7.0', 'numpy', 'pandas', 'xlrd>=1.1.0', 'openpyxl', 'progressbar2', 'latex>=0.7'],
   package_data={

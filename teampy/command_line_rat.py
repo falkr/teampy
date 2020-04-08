@@ -469,5 +469,25 @@ def email(file, testonly):
     print_teampy()
     rat_email(click.open_file(file, encoding='utf-8'), file, testonly)
 
+
+@rat.command()
+@click.argument('file', type=click.Path(exists=True))
+@click.option('--format', type=click.Choice(['blackboard'], case_sensitive=False))
+def export(file, format):
+    """
+    Export the questions to another format.
+    """
+    t = Teampy()
+    file_input = click.open_file(file, encoding='utf-8')
+    questionaire = _load_rat_file(file_input)
+    if questionaire is None:
+        return
+    if format == 'blackboard':
+        text = questionaire.write_blackboard()
+        export_file_path = os.path.join(os.path.dirname(file), 'blackboard.txt')
+        with open(export_file_path, "w", encoding='utf-8') as file:
+            file.write(text)
+
+
 if __name__ == "__main__":
     rat()

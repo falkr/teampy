@@ -224,6 +224,14 @@ class Question:
         lines.append('\\end{enumerate}}\n')
         return "".join(lines)
 
+    def write_blackboard(self):
+        line = 'MC' + '\t'
+        line = line + self.question + '\t'
+        line = line + self.true + '\t' + 'correct' + '\t'
+        for fake in self.fake:
+            line = line + fake + '\t' + 'incorrect' + '\t'
+        return line
+
 def test():
     q = Question([], None, 3)
     q.set_true('True answer.')
@@ -310,6 +318,7 @@ class Questionaire:
                     state = 'question'
         return 0, None
 
+    @staticmethod
     def read_questionaire(filename):
         with open(filename, 'r', encoding='utf-8') as file:
             content = file.readlines()
@@ -333,6 +342,12 @@ class Questionaire:
             lines.append(q.write_latex(index, key))
         lines.append('\\end{document}')
         return "".join(lines)
+
+    def write_blackboard(self):
+        lines = []
+        for q in self.questions:
+            lines.append(q.write_blackboard())
+        return "\n".join(lines)
 
     def write_latex(self, solution_document=None, teams=None, students=None, old_latex=False):
         course, date = '', ''
