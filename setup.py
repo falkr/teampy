@@ -1,8 +1,26 @@
+import codecs
+import os.path
 from distutils.core import setup
+
+def read(rel_path):
+    here = os.path.abspath(os.path.dirname(__file__))
+    with codecs.open(os.path.join(here, rel_path), 'r') as fp:
+        return fp.read()
+
+def get_version(rel_path):
+    for line in read(rel_path).splitlines():
+        if line.startswith('__version__'):
+            delim = '"' if '"' in line else "'"
+            return line.split(delim)[1]
+    else:
+        raise RuntimeError("Unable to find version string.")
+
+package_name = 'teampy'
+
 setup(
-  name='teampy',
-  packages=['teampy'],
-  version='0.1.29',
+  name=package_name,
+  packages=[package_name],
+  version=get_version('{}/__init__.py'.format(package_name)),
   description='Tools for Team-Based Learning',
   install_requires=['pyyaml>=5.3', 'colorama>=0.4.3', 'click>=7.0', 'numpy', 'pandas', 'xlrd>=1.1.0', 'openpyxl', 'progressbar2', 'latex>=0.7'],
   package_data={
