@@ -2,6 +2,10 @@ import teampy
 from colorama import init
 
 import click
+from .core import Teampy
+from . import __version__
+
+@click.version_option(version=__version__)
 
 def print_teampy():
     print(' _                                   ')

@@ -25,6 +25,10 @@ To upgrade, use:
 Pip will install several command line tools. If your command line does not recognize
 the pip command, make sure the Python installer added them to the path.
 
+To check which version of teampy you have, use
+
+    teampy --version
+
 
 ## Other Tools
 
