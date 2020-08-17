@@ -232,6 +232,15 @@ class Question:
             line = line + fake + '\t' + 'incorrect' + '\t'
         return line
 
+    def write_supermark(self):
+        line = "## Question {}\n\n".format(self.number)
+        line = line + ":rat:" + self.question + "\n\n"
+        line = line + "1. " + self.true + "\n"
+        for i, fake in enumerate(self.fake, start=2):
+            line = line + "{}. ".format(i) + fake + "\n"
+        return line
+
+
 def test():
     q = Question([], None, 3)
     q.set_true('True answer.')
@@ -347,6 +356,12 @@ class Questionaire:
         lines = []
         for q in self.questions:
             lines.append(q.write_blackboard())
+        return "\n".join(lines)
+
+    def write_supermark(self):
+        lines = []
+        for q in self.questions:
+            lines.append(q.write_supermark())
         return "\n".join(lines)
 
     def write_latex(self, solution_document=None, teams=None, students=None, old_latex=False):

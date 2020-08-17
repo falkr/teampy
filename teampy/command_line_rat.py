@@ -472,7 +472,7 @@ def email(file, testonly):
 
 @rat.command()
 @click.argument('file', type=click.Path(exists=True))
-@click.option('--format', type=click.Choice(['blackboard'], case_sensitive=False))
+@click.option('--format', type=click.Choice(['blackboard', 'supermark'], case_sensitive=False))
 def export(file, format):
     """
     Export the questions to another format.
@@ -485,6 +485,11 @@ def export(file, format):
     if format == 'blackboard':
         text = questionaire.write_blackboard()
         export_file_path = os.path.join(os.path.dirname(file), 'blackboard.txt')
+        with open(export_file_path, "w", encoding='utf-8') as file:
+            file.write(text)
+    elif format == 'supermark':
+        text = questionaire.write_supermark()
+        export_file_path = os.path.join(os.path.dirname(file), 'rat.md')
         with open(export_file_path, "w", encoding='utf-8') as file:
             file.write(text)
 
