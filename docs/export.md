@@ -7,7 +7,7 @@
 
 ## Exporting to Blackboard
 
-You can export a RAT so that you can [import it in Blackboard as a test](blackborad.html).
+You can export a RAT so that you can [import it in Blackboard as a test](blackboard.html).
 
     rat export --format blackboard questions.txt
 
