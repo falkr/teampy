@@ -56,5 +56,44 @@ def setup(example):
     click.echo("Setup a new course.")
 
 
+@teampy.command()
+def sum():
+    """
+    Sum up the results of a course.
+    """
+    click.echo("Sum up a course.")
+    teampy = Teampy()
+    path = teampy.find_main_directory()
+    print(path)
+
+    # find all result files
+    # for each result file, findout which RAT it belongs to
+
+    def merge_in_rats(df, stmpy_path):
+        for rat in [
+            "rat1",
+            "rat2",
+            "rat3",
+            "rat4",
+            "rat5",
+            "rat6",
+            "rat7",
+            "rat8",
+            "rat9",
+        ]:
+            dfr = pd.read_excel("{}/{}/results.xlsx".format(stmpy_path, rat))
+            dfr = dfr[["id", "score"]]
+            dfr.rename(columns={"score": rat}, inplace=True)
+            print(dfr.head())
+            df = df.merge(dfr, on="id", how="left")
+        for rat in ["rat3", "rat4", "rat5", "rat6", "rat7"]:
+            dfr = pd.read_excel("{}/{}/results_2.xlsx".format(stmpy_path, rat))
+            dfr = dfr[["id", "score"]]
+            dfr.rename(columns={"score": rat}, inplace=True)
+            print(dfr.head())
+            df = df.merge(dfr, on="id", how="left")
+        return df
+
+
 if __name__ == "__main__":
     pass

@@ -39,14 +39,14 @@ from latex import build_pdf
 
 
 def print_teampy():
-    print("")
-    print(" _                                   ")
-    print("| |_ ___  __ _ _ __ ___  _ __  _   _ ")
-    print("| __/ _ \/ _` | '_ ` _ \| '_ \| | | |")
-    print("| ||  __/ (_| | | | | | | |_) | |_| |")
-    print(" \__\___|\__,_|_| |_| |_| .__/ \__, |")
-    print("                        |_|    |___/ {}".format(teampy.__version__))
-    print("")
+    print(r"")
+    print(r" _                                   ")
+    print(r"| |_ ___  __ _ _ __ ___  _ __  _   _ ")
+    print(r"| __/ _ \/ _` | '_ ` _ \| '_ \| | | |")
+    print(r"| ||  __/ (_| | | | | | | |_) | |_| |")
+    print(r" \__\___|\__,_|_| |_| |_| .__/ \__, |")
+    print(r"                        |_|    |___/ {}".format(teampy.__version__))
+    print(r"")
 
 
 def copy_figures(rat_directory):
@@ -584,9 +584,7 @@ def grade(file):
                 rat_grade(click.open_file(file, encoding="utf-8"), file)
         else:
             if click.confirm(
-                "No results file found or specified. Should we create an empty one?".format(
-                    file
-                )
+                "No results file found or specified. Should we create an empty one?"
             ):
                 rat_setup_results_file(file)
     else:
@@ -614,11 +612,16 @@ def email(file, testonly):
 @click.option(
     "--format", type=click.Choice(["blackboard", "supermark"], case_sensitive=False)
 )
-def export(file, format):
+@click.option(
+    "--teamsolution",
+    help="Code of the team scratch card or team solution to shuffle the answer alternatives.",
+    required=False,
+)
+def export(file, format, teamsolution):
     """
     Export the questions to another format.
     """
-    t = Teampy()
+    # t = Teampy()
     file_input = click.open_file(file, encoding="utf-8")
     questionaire = _load_rat_file(file_input)
     if questionaire is None:
@@ -629,7 +632,14 @@ def export(file, format):
         with open(export_file_path, "w", encoding="utf-8") as file:
             file.write(text)
     elif format == "supermark":
-        text = questionaire.write_supermark()
+        if teamsolution is None:
+            tell(
+                "You need to provide the solution for sorting, for instance using argument --teamsolution abcdabcd.",
+                "error",
+            )
+            return
+        solution = Solution.create_solution_from_string(teamsolution)
+        text = questionaire.write_supermark(solution)
         export_file_path = os.path.join(os.path.dirname(file), "rat.md")
         with open(export_file_path, "w", encoding="utf-8") as file:
             file.write(text)

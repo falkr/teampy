@@ -125,6 +125,7 @@ class Students:
     def get_team_ids(self):
         return self.df["team"].unique()
 
+    @staticmethod
     def write_students_file():
         students = [
             {
@@ -139,7 +140,7 @@ class Students:
         students = students.set_index("id")
         students.to_excel("students.xlsx")
 
-    def generate_ids():
+    def generate_ids(self):
         assert False
 
         def get_unique_id(a, b, ids):
@@ -158,7 +159,7 @@ class Students:
             email_to_id[row["email"]] = id
         df["id"] = df["email"].apply(lambda x: email_to_id[x])
 
-    def check():
+    def check(self):
         # TODO check that all emails are valid and unique
         # TODO check unique ID
         assert False
@@ -171,6 +172,7 @@ class Teams:
     def __init__(self):
         pass
 
+    @staticmethod
     def from_excel(filename):
         teams = Teams()
         teams.df = pd.read_excel(filename, dtype={"id": str, "name": str})
@@ -178,6 +180,7 @@ class Teams:
         # TODO check that all teams referred to by students file are in here
         return teams
 
+    @staticmethod
     def from_students(students):
         teams = Teams()
         ids = students.get_team_ids()
@@ -253,12 +256,11 @@ class Question:
             line = line + fake + "\t" + "incorrect" + "\t"
         return line
 
-    def write_supermark(self):
+    def write_supermark(self, key):
         line = "## Question {}\n\n".format(self.number)
         line = line + ":rat:" + self.question + "\n\n"
-        line = line + "1. " + self.true + "\n"
-        for i, fake in enumerate(self.fake, start=2):
-            line = line + "{}. ".format(i) + fake + "\n"
+        for i, answer in enumerate(self.get_rolled_answers(key), start=1):
+            line = line + "{}. ".format(i) + answer + "\n"
         return line
 
 
@@ -385,10 +387,11 @@ class Questionaire:
             lines.append(q.write_blackboard())
         return "\n".join(lines)
 
-    def write_supermark(self):
+    def write_supermark(self, solution):
         lines = []
         for q in self.questions:
-            lines.append(q.write_supermark())
+            key = solution.answers[q.number - 1]
+            lines.append(q.write_supermark(key))
         return "\n".join(lines)
 
     def write_latex(
@@ -612,6 +615,7 @@ class Solution:
         self.questions = questions
         self.answers = answers
 
+    @staticmethod
     def create_solution_from_questionaire(questionaire):
         # TODO we should check that the solution does not contain 10 times the same letter, because that would mess up the format of the checksum
         questions = []
@@ -625,6 +629,7 @@ class Solution:
         solution = Solution(questions, answers)
         return solution
 
+    @staticmethod
     def create_solution_from_string(solution_string, card_id=None):
         """
         A solution string looks like this:
