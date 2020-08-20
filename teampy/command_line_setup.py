@@ -8,12 +8,12 @@ from . import __version__
 
 @click.version_option(version=__version__)
 def print_teampy():
-    print(" _                                   ")
-    print("| |_ ___  __ _ _ __ ___  _ __  _   _ ")
-    print("| __/ _ \/ _` | '_ ` _ \| '_ \| | | |")
-    print("| ||  __/ (_| | | | | | | |_) | |_| |")
-    print(" \__\___|\__,_|_| |_| |_| .__/ \__, |")
-    print("                        |_|    |___/ ")
+    print(r" _                                   ")
+    print(r"| |_ ___  __ _ _ __ ___  _ __  _   _ ")
+    print(r"| __/ _ \/ _` | '_ ` _ \| '_ \| | | |")
+    print(r"| ||  __/ (_| | | | | | | |_) | |_| |")
+    print(r" \__\___|\__,_|_| |_| |_| .__/ \__, |")
+    print(r"                        |_|    |___/ ")
 
 
 @click.group()

@@ -248,12 +248,14 @@ class Question:
         lines.append("\\end{enumerate}}\n")
         return "".join(lines)
 
-    def write_blackboard(self):
+    def write_blackboard(self, key):
         line = "MC" + "\t"
         line = line + self.question + "\t"
-        line = line + self.true + "\t" + "correct" + "\t"
-        for fake in self.fake:
-            line = line + fake + "\t" + "incorrect" + "\t"
+        for i, answer in enumerate(self.get_rolled_answers(key), start=1):
+            if answer == self.true:
+                line = line + answer + "\t" + "correct" + "\t"
+            else:
+                line = line + answer + "\t" + "incorrect" + "\t"
         return line
 
     def write_supermark(self, key):
@@ -381,10 +383,11 @@ class Questionaire:
         lines.append("\\end{document}")
         return "".join(lines)
 
-    def write_blackboard(self):
+    def write_blackboard(self, solution):
         lines = []
         for q in self.questions:
-            lines.append(q.write_blackboard())
+            key = solution.answers[q.number - 1]
+            lines.append(q.write_blackboard(key))
         return "\n".join(lines)
 
     def write_supermark(self, solution):

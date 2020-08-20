@@ -4,10 +4,11 @@
 
 ## Exporting from Teampy
 
-You can export a RAT so that you can import it in Blackboard as a test.
+You can export a RAT so that you can [import it in Blackboard as a test](blackboard.html).
 
-    rat export --format blackboard questions.txt
+    rat export --format blackboard --solution abcdabcdab questions.txt
 
+You need to provide the solution string to shuffle the answer alternatives. 
 The result is a file called **blackboard.txt**
 
 ## Creating a Test on Blackboard

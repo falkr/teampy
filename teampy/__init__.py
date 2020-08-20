@@ -24,7 +24,7 @@ from teampy.core import (
 
 init(autoreset=True)
 
-__version__ = "0.1.31"
+__version__ = "0.1.32"
 """
 The current version.
 """
