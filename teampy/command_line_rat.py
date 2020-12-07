@@ -610,7 +610,7 @@ def email(file, testonly):
 @rat.command()
 @click.argument("file", type=click.Path(exists=True))
 @click.option(
-    "--format", type=click.Choice(["blackboard", "supermark"], case_sensitive=False)
+    "--format", type=click.Choice(["blackboard", "supermark", "pdf"], case_sensitive=False)
 )
 @click.option(
     "--solution",
@@ -637,7 +637,14 @@ def export(file, format, solution):
         export_file_path = os.path.join(os.path.dirname(file), "rat.md")
         with open(export_file_path, "w", encoding="utf-8") as file:
             file.write(text)
-
+    elif format == "pdf":
+        latex = questionaire.write_pdf(solution)
+        export_file_path = os.path.join(os.path.dirname(file), "rat.pdf")
+        # empty directory for tex reasons...
+        current_dir = os.path.abspath(os.path.dirname(file))
+        pdf = build_pdf(latex, texinputs=[current_dir, ""])
+        pdf.save_to(export_file_path)
+ 
 
 if __name__ == "__main__":
     rat()

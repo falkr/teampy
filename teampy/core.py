@@ -375,11 +375,25 @@ class Questionaire:
             preamble = myfile.read()  # .replace('\n', '')
             lines.append(preamble)
         lines.append("\\subsubsection*{{RAT Test Run}}\n")
-        index = 0
         for q in self.questions:
-            index += 1
             key = random.choice(["a", "b", "c", "d"])
-            lines.append(q.write_latex(index, key))
+            lines.append(q.write_latex(q.number, key))
+        lines.append("\\end{document}")
+        return "".join(lines)
+
+    def write_pdf(self, solution):
+        lines = []
+        # add latex preamble
+        # abs_file_path = os.path.join(os.path.dirname(__file__), 'resources', 'latex_preamble.tex')
+        abs_file_path = os.path.join(os.path.dirname(__file__), "latex_preamble.tex")
+        with open(abs_file_path, "r", encoding="utf-8") as myfile:
+            preamble = myfile.read()  # .replace('\n', '')
+            lines.append(preamble)
+        lines.append("\\subsubsection*{{RAT}}\n")
+        for q in self.questions:
+            key = solution.answers[q.number - 1]
+            #lines.append(q.write_latex(index, key))
+            lines.append(q.write_latex(q.number, key))
         lines.append("\\end{document}")
         return "".join(lines)
 

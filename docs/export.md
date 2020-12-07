@@ -22,3 +22,12 @@ You can export a RAT so that you can import it in [Supermark](https://falkr.gith
     rat export --format supermark --solution abcdabcdab questions.txt
 
 You need to provide the solution string to shuffle the answer alternatives. 
+
+
+## Exporting to PDF
+
+You can export a RAT so that you can use it as a simple PDF file with randomized answers.
+
+    rat export --format pdf --solution abcdabcdab questions.txt
+
+You need to provide the solution string to shuffle the answer alternatives. 
