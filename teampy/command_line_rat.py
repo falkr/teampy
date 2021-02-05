@@ -610,12 +610,18 @@ def email(file, testonly):
 @rat.command()
 @click.argument("file", type=click.Path(exists=True))
 @click.option(
-    "--format", type=click.Choice(["blackboard", "supermark"], case_sensitive=False)
+    "--format",
+    type=click.Choice(
+        ["blackboard", "supermark"],
+        case_sensitive=False,
+    ),
+    required=False,
 )
 @click.option(
     "--solution",
     help="Code of the team scratch card or team solution to shuffle the answer alternatives.",
-    prompt="Solution",
+    # prompt="Solution",
+    required=False,
 )
 def export(file, format, solution):
     """
@@ -626,17 +632,29 @@ def export(file, format, solution):
     questionaire = _load_rat_file(file_input)
     if questionaire is None:
         return
-    solution = Solution.create_solution_from_string(solution)
-    if format == "blackboard":
+    if solution is None:
+        solution = Solution.create_solution_from_questionaire(
+            questionaire, shuffle_questions=False
+        )
+        print("No solution provided, so we create a random one:")
+        print("".join(solution.answers))
+    else:
+        solution = Solution.create_solution_from_string(solution)
+    # if no format is specified, export all formats
+    if format is None:
+        format = ["blackboard", "supermark"]
+    else:
+        format = [format]
+    if "blackboard" in format:
         text = questionaire.write_blackboard(solution)
         export_file_path = os.path.join(os.path.dirname(file), "blackboard.txt")
-        with open(export_file_path, "w", encoding="utf-8") as file:
-            file.write(text)
-    elif format == "supermark":
+        with open(export_file_path, "w", encoding="utf-8") as openfile:
+            openfile.write(text)
+    if "supermark" in format:
         text = questionaire.write_supermark(solution)
         export_file_path = os.path.join(os.path.dirname(file), "rat.md")
-        with open(export_file_path, "w", encoding="utf-8") as file:
-            file.write(text)
+        with open(export_file_path, "w", encoding="utf-8") as openfile:
+            openfile.write(text)
 
 
 if __name__ == "__main__":

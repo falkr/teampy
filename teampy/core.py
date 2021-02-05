@@ -28,8 +28,8 @@ def tell(message, level="info"):
 
 def tex_escape(text):
     """
-        :param text: a plain text message
-        :return: the message escaped to appear correctly in LaTeX
+    :param text: a plain text message
+    :return: the message escaped to appear correctly in LaTeX
     """
     conv = {
         "æ": r"\ae{}",
@@ -619,7 +619,7 @@ class Solution:
         self.answers = answers
 
     @staticmethod
-    def create_solution_from_questionaire(questionaire):
+    def create_solution_from_questionaire(questionaire, shuffle_questions=True):
         # TODO we should check that the solution does not contain 10 times the same letter, because that would mess up the format of the checksum
         questions = []
         answers = []
@@ -627,8 +627,9 @@ class Solution:
         for question in range(1, len(questionaire.questions) + 1):
             questions.append(question)
             answers.append(random.choice(["a", "b", "c", "d"]))
-        # shuffle the sequence of questions
-        random.shuffle(questions)
+        if shuffle_questions:
+            # shuffle the sequence of questions
+            random.shuffle(questions)
         solution = Solution(questions, answers)
         return solution
 
