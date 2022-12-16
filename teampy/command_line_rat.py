@@ -176,14 +176,14 @@ def rat_print(file_input, file_path, team_solution, old_latex=False, pdf=True):
     if team_solution in t.scratchcards:
         scratch_card_id = team_solution
         team_solution = t.scratchcards[team_solution]
-        # TODO check if solution matches requirement from questionaire
+        # TODO check if solution matches requirement from questionnaire
         tell(
             "Found scratch card {} with solution {}".format(
                 scratch_card_id, team_solution.to_string()
             )
         )
     else:
-        # TODO check if solution matches requirement from questionaire
+        # TODO check if solution matches requirement from questionnaire
         team_solution = Solution.create_solution_from_string(team_solution)
 
     # TODO check if team solution has correct number
@@ -191,6 +191,10 @@ def rat_print(file_input, file_path, team_solution, old_latex=False, pdf=True):
 
     # create a solution file
     sd = SolutionDocument()
+    # remove unnecessary answers and questions if questionnaire <10 questions
+    num_questions = len(questionaire.questions)
+    team_solution.questions = team_solution.questions[:num_questions]
+    team_solution.answers = team_solution.answers[:num_questions]
     sd.create_solution_document(t.teams, t.students, questionaire, team_solution)
     solutions_file_path = os.path.join(os.path.dirname(file_path), "solutions.teampy")
     sd.store(solutions_file_path)
@@ -431,6 +435,8 @@ def rat_email(file_input, file_path, testonly):
                 statuses[student_id] = "error"
                 print(e)
             bar += 1
+
+        bar.finish()
     except (
         SMTPHeloError,
         SMTPAuthenticationError,
@@ -442,7 +448,6 @@ def rat_email(file_input, file_path, testonly):
                 teampy.smtp_settings["smtp"]
             )
         )
-    bar.finish()
     server.quit()
 
     # update the status
@@ -612,7 +617,7 @@ def email(file, testonly):
 @click.option(
     "--format",
     type=click.Choice(
-        ["blackboard", "supermark"],
+        ["blackboard", "supermark", "pdf"],
         case_sensitive=False,
     ),
     required=False,
@@ -642,7 +647,7 @@ def export(file, format, solution):
         solution = Solution.create_solution_from_string(solution)
     # if no format is specified, export all formats
     if format is None:
-        format = ["blackboard", "supermark"]
+        format = ["blackboard", "supermark", "pdf"]
     else:
         format = [format]
     if "blackboard" in format:
@@ -653,8 +658,15 @@ def export(file, format, solution):
     if "supermark" in format:
         text = questionaire.write_supermark(solution)
         export_file_path = os.path.join(os.path.dirname(file), "rat.md")
-        with open(export_file_path, "w", encoding="utf-8") as openfile:
-            openfile.write(text)
+        with open(export_file_path, "w", encoding="utf-8") as file:
+            file.write(text)
+    if "pdf" in format:
+        latex = questionaire.write_pdf(solution)
+        export_file_path = os.path.join(os.path.dirname(file), "rat.pdf")
+        # empty directory for tex reasons...
+        current_dir = os.path.abspath(os.path.dirname(file))
+        pdf = build_pdf(latex, texinputs=[current_dir, ""])
+        pdf.save_to(export_file_path)
 
 
 if __name__ == "__main__":
