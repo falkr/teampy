@@ -17,3 +17,8 @@ The result of this operation are two files:
 
 * The file `questions.pdf` with the quizzes ready for printing. If you use the command line option `--nopdf`, Teampy creates a *.tex file instead that you can translate with LaTeX.
 * The file `solutions.teampy`. This file contains the correct solution for each team and student. Teampy needs this file later when the RATs are evaluated, so **do not delete this file.**
+
+
+## Only Printing Team RATs
+
+In case you only need to print the RATs for teams and not the individual students, use option `--teamsonly`.
