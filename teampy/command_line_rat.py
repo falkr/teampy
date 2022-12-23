@@ -164,7 +164,9 @@ def parallel_file_path(file_path, alternative_extension):
     )
 
 
-def rat_print(file_input, file_path, team_solution, old_latex=False, pdf=True):
+def rat_print(
+    file_input, file_path, team_solution, old_latex=False, pdf=True, teamonly=False
+):
     """
     Create a document with RATs for all students and all teams.
     """
@@ -196,7 +198,7 @@ def rat_print(file_input, file_path, team_solution, old_latex=False, pdf=True):
     sd.store(solutions_file_path)
     tell("Write solutions into file {}.".format(solutions_file_path))
 
-    latex = questionaire.write_latex(sd, t.teams, t.students, old_latex)
+    latex = questionaire.write_latex(sd, t.teams, t.students, old_latex, teamonly)
     if pdf:
         pdf_file_name = os.path.splitext(os.path.basename(file_path))[0] + ".pdf"
         tell("Creating PDF...")
@@ -536,11 +538,17 @@ def trial(file):
     "--nopdf", default=False, is_flag=True, help="Do not create PDF, just latex source."
 )
 @click.option(
+    "--teamonly",
+    default=False,
+    is_flag=True,
+    help="Only create the pages for the teams, not the individual RATs.",
+)
+@click.option(
     "--teamsolution",
     prompt="Team solution",
     help="Code of the team scratch card or team solution.",
 )
-def print_(file, teamsolution, nopdf):
+def print_(file, teamsolution, nopdf, teamonly):
     """
     Print a RAT before class.
     """
@@ -552,10 +560,20 @@ def print_(file, teamsolution, nopdf):
         if os.path.exists(file):
             if click.confirm("Found file {}. Do you want to print it?".format(file)):
                 rat_print(
-                    click.open_file(file, encoding="utf-8"), file, teamsolution, pdf=pdf
+                    click.open_file(file, encoding="utf-8"),
+                    file,
+                    teamsolution,
+                    pdf=pdf,
+                    teamonly=teamonly,
                 )
     else:
-        rat_print(click.open_file(file, encoding="utf-8"), file, teamsolution, pdf=pdf)
+        rat_print(
+            click.open_file(file, encoding="utf-8"),
+            file,
+            teamsolution,
+            pdf=pdf,
+            teamonly=teamonly,
+        )
 
 
 def rat_setup_results_file(result_file):

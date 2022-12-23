@@ -80,6 +80,7 @@ class Students:
         if all(self.df.team.apply(lambda team: team.isdigit())):
             self.df["team_int"] = self.df.team.astype(int)
         if "table" in self.df.columns:
+            # TODO - [ ] ERROR when we have a table that excel reads in as float, then no gigit!
             if all(self.df.table.apply(lambda table: table.isdigit())):
                 self.df["table_int"] = self.df.table.astype(int)
 
@@ -398,7 +399,12 @@ class Questionaire:
         return "\n".join(lines)
 
     def write_latex(
-        self, solution_document=None, teams=None, students=None, old_latex=False
+        self,
+        solution_document=None,
+        teams=None,
+        students=None,
+        old_latex=False,
+        teamonly=False,
     ):
         course, date = "", ""
         page_break = "\\cleardoublepage\n\\newpage\n\n"
@@ -433,16 +439,18 @@ class Questionaire:
                         team_id, solution.card_id, solution.to_string()
                     )
                 )
-
-        # list all solution for all students of each team
-        for team_id in teams.get_ids():
-            # lines.append('\\subsubsection*\{Team {}\}\n'.format(team_id))
-            lines.append("\\subsubsection*{{Team {}}}\n".format(team_id))
-            for student_id in students.get_student_ids_of_team(team_id):
-                name = tex_escape(students.get_name(student_id))
-                solution = solution_document.student_solutions[student_id].to_string()
-                lines.append("{}:{}\\\\\n".format(name, solution))
-        lines.append(page_break)
+        if not teamonly:
+            # list all solution for all students of each team
+            for team_id in teams.get_ids():
+                # lines.append('\\subsubsection*\{Team {}\}\n'.format(team_id))
+                lines.append("\\subsubsection*{{Team {}}}\n".format(team_id))
+                for student_id in students.get_student_ids_of_team(team_id):
+                    name = tex_escape(students.get_name(student_id))
+                    solution = solution_document.student_solutions[
+                        student_id
+                    ].to_string()
+                    lines.append("{}:{}\\\\\n".format(name, solution))
+            lines.append(page_break)
 
         # TODO list solution for extra students
 
@@ -462,58 +470,61 @@ class Questionaire:
         lines.append("\\thumbnewcolumn\n")
 
         # questionaire for each student
-        old_thumb = None
-        if students.assigned_to_tables():
-            for student_id in students.get_ids(sort_by="table"):
-                name = tex_escape(students.get_name(student_id))
-                team_id = students.get_team(student_id)
-                table = students.get_table(student_id)
-                if old_thumb != table:
+        if not teamonly:
+            old_thumb = None
+            if students.assigned_to_tables():
+                for student_id in students.get_ids(sort_by="table"):
+                    name = tex_escape(students.get_name(student_id))
+                    team_id = students.get_team(student_id)
+                    table = students.get_table(student_id)
+                    if old_thumb != table:
+                        lines.append(
+                            "\\addthumb{}" + "{{{}}}".format(table) + "{white}{black}\n"
+                        )
                     lines.append(
-                        "\\addthumb{}" + "{{{}}}".format(table) + "{white}{black}\n"
+                        "\\individualprefix"
+                        + "{{{}}}{{{}}}{{{}}}{{{}}}{{{}}}{{{}}}{{{}}}".format(
+                            name, student_id, team_id, table, course, self.title, date
+                        )
+                        + "\n\n"
                     )
-                lines.append(
-                    "\\individualprefix"
-                    + "{{{}}}{{{}}}{{{}}}{{{}}}{{{}}}{{{}}}{{{}}}".format(
-                        name, student_id, team_id, table, course, self.title, date
-                    )
-                    + "\n\n"
-                )
-                solution = solution_document.student_solutions[student_id]
-                # sort question according to solution for this student
-                index = 0
-                for question_number in solution.questions:
-                    index += 1
-                    question = self.questions[question_number - 1]
-                    key = solution.answers[index - 1]
-                    lines.append(question.write_latex(index, key))
-                lines.append(page_break)
-                old_thumb = table
-        else:
-            for student_id in students.get_ids(sort_by="team"):
-                name = tex_escape(students.get_name(student_id))
-                team_id = students.get_team(student_id)
-                if old_thumb != team_id:
+                    solution = solution_document.student_solutions[student_id]
+                    # sort question according to solution for this student
+                    index = 0
+                    for question_number in solution.questions:
+                        index += 1
+                        question = self.questions[question_number - 1]
+                        key = solution.answers[index - 1]
+                        lines.append(question.write_latex(index, key))
+                    lines.append(page_break)
+                    old_thumb = table
+            else:
+                for student_id in students.get_ids(sort_by="team"):
+                    name = tex_escape(students.get_name(student_id))
+                    team_id = students.get_team(student_id)
+                    if old_thumb != team_id:
+                        lines.append(
+                            "\\addthumb{}"
+                            + "{{{}}}".format(team_id)
+                            + "{white}{black}\n"
+                        )
                     lines.append(
-                        "\\addthumb{}" + "{{{}}}".format(team_id) + "{white}{black}\n"
+                        "\\individualprefix"
+                        + "{{{}}}{{{}}}{{{}}}{{{}}}{{{}}}{{{}}}{{{}}}".format(
+                            name, student_id, team_id, "", course, self.title, date
+                        )
+                        + "\n\n"
                     )
-                lines.append(
-                    "\\individualprefix"
-                    + "{{{}}}{{{}}}{{{}}}{{{}}}{{{}}}{{{}}}{{{}}}".format(
-                        name, student_id, team_id, "", course, self.title, date
-                    )
-                    + "\n\n"
-                )
-                solution = solution_document.student_solutions[student_id]
-                # sort question according to solution for this student
-                index = 0
-                for question_number in solution.questions:
-                    index += 1
-                    question = self.questions[question_number - 1]
-                    key = solution.answers[index - 1]
-                    lines.append(question.write_latex(index, key))
-                lines.append(page_break)
-                old_thumb = team_id
+                    solution = solution_document.student_solutions[student_id]
+                    # sort question according to solution for this student
+                    index = 0
+                    for question_number in solution.questions:
+                        index += 1
+                        question = self.questions[question_number - 1]
+                        key = solution.answers[index - 1]
+                        lines.append(question.write_latex(index, key))
+                    lines.append(page_break)
+                    old_thumb = team_id
         lines.append("\\end{document}")
 
         # TODO questionaire for each extra sheet
