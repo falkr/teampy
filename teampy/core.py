@@ -376,11 +376,34 @@ class Questionaire:
             preamble = myfile.read()  # .replace('\n', '')
             lines.append(preamble)
         lines.append("\\subsubsection*{{RAT Test Run}}\n")
-        index = 0
+#        index = 0
         for q in self.questions:
-            index += 1
+#            index += 1
             key = random.choice(["a", "b", "c", "d"])
-            lines.append(q.write_latex(index, key))
+#            lines.append(q.write_latex(index, key))
+            lines.append(q.write_latex(q.number, key))
+        lines.append("\\end{document}")
+        return "".join(lines)
+
+    def write_pdf(self, solution):
+        lines = []
+        # add latex preamble
+        # abs_file_path = os.path.join(os.path.dirname(__file__), 'resources', 'latex_preamble.tex')
+        abs_file_path = os.path.join(os.path.dirname(__file__), "latex_preamble.tex")
+        with open(abs_file_path, "r", encoding="utf-8") as myfile:
+            preamble = myfile.read()  # .replace('\n', '')
+            lines.append(preamble)
+        # lines.append("\\subsubsection*{{RAT}}\n")
+        lines.append("\\vbox{\\textbf"
+                     + "{{{}}}".format(self.title)
+                     + "}\n")
+        if len(self.questions) > len(solution.answers):
+            raise Exception("You must provide enough solutions. There are more questions than answers!")
+
+        for q in self.questions:
+            key = solution.answers[q.number - 1]
+            #lines.append(q.write_latex(index, key))
+            lines.append(q.write_latex(q.number, key))
         lines.append("\\end{document}")
         return "".join(lines)
 
@@ -853,7 +876,8 @@ class ResultLine:
                 )
                 return False
         # check that checksum is correct, and that it corresponds with result string
-        if self.type is "student":
+        # if self.type is "student":
+        if self.type == "student":
             if len(self.checksum) != 4:
                 tell(
                     "File {}, line {}: The checksum for student with id {}{} is wrong.".format(
@@ -910,7 +934,19 @@ class ResultLine:
         for c in self.normalized_results.values():
             if c == "a":
                 correct_answers += 1
-        self.score = 100 * correct_answers / len(self.normalized_results)
+# original        self.score = 100 * correct_answers / len(self.normalized_results)
+        if self.type == "student":
+            self.score = 100 * correct_answers / len(self.normalized_results)
+        elif self.type == "team":
+            total_qs = len(self.normalized_results)
+            # using the checksum as the number of attempts
+            attempts = int(self.checksum)
+            # we assume each team got all the correct answers
+            # and count the "extra" attempts to penalise the score
+            # instead of counting only the ones right on the first attempt
+            # NOTE: this assumes 4 possible options 
+            total_choices = 4
+            self.score = 100 - (attempts - total_qs) * (100/total_qs) / (total_choices - 1)
 
         # print('--Results for {}'.format(self.result_id))
         # print('              {}'.format(self.result))

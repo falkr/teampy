@@ -11,7 +11,7 @@ You can export a RAT so that you can [import it in Blackboard as a test](blackbo
 
     rat export --format blackboard --solution abcdabcdab questions.txt
 
-You need to provide the solution string to shuffle the answer alternatives. 
+You can provide the solution string to shuffle the answer alternatives, or it will be randomly generated for you. 
 
 
 
@@ -21,4 +21,14 @@ You can export a RAT so that you can import it in [Supermark](https://falkr.gith
 
     rat export --format supermark --solution abcdabcdab questions.txt
 
-You need to provide the solution string to shuffle the answer alternatives. 
+You can provide the solution string to shuffle the answer alternatives, or it will be randomly generated for you. 
+
+
+
+## Exporting to PDF
+
+You can export a RAT so that you can use it as a simple PDF document.
+
+    rat export --format pdf --solution abcdabcdab questions.txt
+
+You can provide the solution string to shuffle the answer alternatives, or it will be randomly generated for you. 
