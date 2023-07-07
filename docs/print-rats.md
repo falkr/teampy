@@ -4,8 +4,11 @@
 # Print RATs
 
 When you print a RAT, Teampy creates a shuffled version of the questions for
-each student, and shuffles the answers for the teams so that they match any
-scratch cards that you may want to use.
+each student, and provides each team with a unique solution.
+
+    rat print questions.txt
+
+If you want to use a specific solution for all teams, provide it using the following option:
 
     rat print --teamsolution abcdabcdab questions.txt
 
