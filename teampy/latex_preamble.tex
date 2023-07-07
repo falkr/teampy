@@ -60,6 +60,18 @@
 
 \usepackage{enumitem}
 
+
+\usepackage[framemethod=TikZ]{mdframed}
+\mdfdefinestyle{MyFrame}{%
+    linecolor=gray,
+    outerlinewidth=0.4pt,
+    roundcorner=6pt,
+    innertopmargin=\baselineskip,
+    innerbottommargin=\baselineskip,
+    innerrightmargin=10pt,
+    innerleftmargin=10pt,
+    backgroundcolor=white}
+
 \LetLtxMacro{\OldIncludegraphics}{\includegraphics}
 \renewcommand{\includegraphics}[2][]{\OldIncludegraphics[width=\linewidth, #1]{#2}}
 \renewcommand{\caption}{}
@@ -93,6 +105,31 @@ Team: & \textbf{#1}\\
 \rule{\linewidth}{0.4pt}
 \vfill
 }%
+
+\newcommand{\teamprefixnuts}[5]{%
+\addthumb{}{#1}{white}{black}
+%\rule{\linewidth}{0.4pt}
+\begin{mdframed}[style=MyFrame]
+\begin{tabular}{@{}ll}%
+\ifthenelse{\not\equal{#2}{}}{Course: & \textbf{#2}\\}{}%
+RAT: & \textbf{#3} \\
+\ifthenelse{\not\equal{#4}{}}{Date: & \textbf{#4}\\}{}%
+Team: & \textbf{#1}\\
+\end{tabular}\\%
+\rule{\linewidth}{0.4pt}
+Solve this quiz together in your team. To get the solution as you work, do the following:
+\begin{enumerate}
+\item Exactly one member of your team should install the app 
+\textbf{Nøtteknekker} on iPhone.
+\item Open the app.
+\item Use the following code in the app:\\
+\textbf{\large #5} 
+\end{enumerate}
+\end{mdframed}
+\vspace*{1cm}%
+\vfill
+}%
+
 
 \newcommand{\individualprefix}[7]{%
 % #1 name

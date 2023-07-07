@@ -175,7 +175,10 @@ def rat_print(
     if questionaire is None:
         return
 
-    if team_solution in t.scratchcards:
+    if team_solution is None:
+        # we use nutcodes
+        pass
+    elif team_solution in t.scratchcards:
         scratch_card_id = team_solution
         team_solution = t.scratchcards[team_solution]
         # TODO check if solution matches requirement from questionnaire
@@ -188,15 +191,17 @@ def rat_print(
         # TODO check if solution matches requirement from questionnaire
         team_solution = Solution.create_solution_from_string(team_solution)
 
-    # TODO check if team solution has correct number
-    # TODO look for already existing solution document, load and update it
+    if team_solution is not None:
+        # TODO check if team solution has correct number
+        # TODO look for already existing solution document, load and update it
+        # remove unnecessary answers and questions if questionnaire <10 questions
+        num_questions = len(questionaire.questions)
+        team_solution.questions = team_solution.questions[:num_questions]
+        team_solution.answers = team_solution.answers[:num_questions]
 
     # create a solution file
     sd = SolutionDocument()
-    # remove unnecessary answers and questions if questionnaire <10 questions
-    num_questions = len(questionaire.questions)
-    team_solution.questions = team_solution.questions[:num_questions]
-    team_solution.answers = team_solution.answers[:num_questions]
+
     sd.create_solution_document(t.teams, t.students, questionaire, team_solution)
     solutions_file_path = os.path.join(os.path.dirname(file_path), "solutions.teampy")
     sd.store(solutions_file_path)
@@ -550,7 +555,7 @@ def trial(file):
 )
 @click.option(
     "--teamsolution",
-    prompt="Team solution",
+    # prompt="Team solution",
     help="Code of the team scratch card or team solution.",
 )
 def print_(file, teamsolution, nopdf, teamonly):

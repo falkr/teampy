@@ -376,11 +376,11 @@ class Questionaire:
             preamble = myfile.read()  # .replace('\n', '')
             lines.append(preamble)
         lines.append("\\subsubsection*{{RAT Test Run}}\n")
-#        index = 0
+        #        index = 0
         for q in self.questions:
-#            index += 1
+            #            index += 1
             key = random.choice(["a", "b", "c", "d"])
-#            lines.append(q.write_latex(index, key))
+            #            lines.append(q.write_latex(index, key))
             lines.append(q.write_latex(q.number, key))
         lines.append("\\end{document}")
         return "".join(lines)
@@ -394,15 +394,15 @@ class Questionaire:
             preamble = myfile.read()  # .replace('\n', '')
             lines.append(preamble)
         # lines.append("\\subsubsection*{{RAT}}\n")
-        lines.append("\\vbox{\\textbf"
-                     + "{{{}}}".format(self.title)
-                     + "}\n")
+        lines.append("\\vbox{\\textbf" + "{{{}}}".format(self.title) + "}\n")
         if len(self.questions) > len(solution.answers):
-            raise Exception("You must provide enough solutions. There are more questions than answers!")
+            raise Exception(
+                "You must provide enough solutions. There are more questions than answers!"
+            )
 
         for q in self.questions:
             key = solution.answers[q.number - 1]
-            #lines.append(q.write_latex(index, key))
+            # lines.append(q.write_latex(index, key))
             lines.append(q.write_latex(q.number, key))
         lines.append("\\end{document}")
         return "".join(lines)
@@ -451,10 +451,16 @@ class Questionaire:
         lines.append(page_break)
 
         # list all solutions on the front page, for all teams
-        lines.append("\\subsubsection*{{Scratchcards for Teams}}\n")
+        lines.append("\\subsubsection*{{Solutions for Teams}}\n")
         for team_id in teams.get_ids():
             solution = solution_document.team_solutions[team_id]
-            if solution.card_id is None:
+            if solution.nutcode is not None:
+                lines.append(
+                    "Team {}: {} {}\\\\\n".format(
+                        team_id, solution.nutcode, solution.to_string()
+                    )
+                )
+            elif solution.card_id is None:
                 lines.append("Team {}: {}\\\\\n".format(team_id, solution.to_string()))
             else:
                 lines.append(
@@ -479,12 +485,24 @@ class Questionaire:
 
         # questionaire for each team:
         for team_id in teams.get_ids():
-            lines.append(
-                "\\teamprefix"
-                + "{{{}}}{{{}}}{{{}}}{{{}}}".format(team_id, course, self.title, date)
-                + "\n\n"
-            )
             solution = solution_document.team_solutions[team_id]
+            if solution.nutcode is not None:
+                lines.append(
+                    "\\teamprefixnuts"
+                    + "{{{}}}{{{}}}{{{}}}{{{}}}{{{}}}".format(
+                        team_id, course, self.title, date, solution.nutcode
+                    )
+                    + "\n\n"
+                )
+            else:
+                lines.append(
+                    "\\teamprefix"
+                    + "{{{}}}{{{}}}{{{}}}{{{}}}".format(
+                        team_id, course, self.title, date
+                    )
+                    + "\n\n"
+                )
+
             for question in self.questions:
                 key = solution.answers[question.number - 1]
                 lines.append(question.write_latex(question.number, key))
@@ -647,10 +665,11 @@ class Questionaire:
 
 
 class Solution:
-    def __init__(self, questions, answers, card_id=None):
+    def __init__(self, questions, answers, card_id=None, nutcode=None):
         self.card_id = card_id
         self.questions = questions
         self.answers = answers
+        self.nutcode = nutcode
 
     @staticmethod
     def create_solution_from_questionaire(questionaire, shuffle_questions=True):
@@ -704,6 +723,45 @@ class Solution:
                 answers.append(token)
         return Solution(questions, answers, card_id=card_id)
 
+    @staticmethod
+    def create_solution_from_nuts(questionaire):
+        """ """
+
+        def generate_random(n):
+            letters = ["a", "b", "c", "d"]
+            sequence = ""
+            for _ in range(n):
+                random_index = random.randint(0, len(letters) - 1)
+                sequence += letters[random_index]
+            return sequence
+
+        base5_digits = "xabcd"
+        base32_digits = "abcdefghijklmnopqrstuvwxyz234567"
+
+        def base5_to_base32(base5_array):
+            base10_number = 0
+            for digit in base5_array:
+                position = base5_digits.index(digit)
+                base10_number = base10_number * 5 + position
+            base32_array = []
+            while base10_number > 0:
+                remainder = base10_number % 32
+                base32_array.insert(0, base32_digits[remainder])
+                base10_number //= 32
+            return ["0"] if not base32_array else base32_array
+
+        answers = generate_random(len(questionaire.questions))
+
+        questions = []
+        question_number = 0
+        for token in list(answers):
+            question_number += 1
+            questions.append(str(question_number))
+        # padd with x to reach 12
+        nut_answers = answers + "x" * (12 - len(answers))
+        nutcode = "".join(base5_to_base32(nut_answers)).upper()
+        return Solution(questions, answers, nutcode=nutcode)
+
     def to_string(self):
         s = ""
         for q, a in zip(self.questions, self.answers):
@@ -755,8 +813,14 @@ class SolutionDocument:
     def create_solution_document(
         self, teams, students, questionaire, scratchcard_solution
     ):
-        for team_id in teams.get_ids():
-            self.team_solutions[team_id] = scratchcard_solution
+        if scratchcard_solution is None:
+            for team_id in teams.get_ids():
+                self.team_solutions[team_id] = Solution.create_solution_from_nuts(
+                    questionaire
+                )
+        else:
+            for team_id in teams.get_ids():
+                self.team_solutions[team_id] = scratchcard_solution
         for student_id in students.get_ids():
             solution = Solution.create_solution_from_questionaire(questionaire)
             self.student_solutions[student_id] = solution
@@ -934,7 +998,7 @@ class ResultLine:
         for c in self.normalized_results.values():
             if c == "a":
                 correct_answers += 1
-# original        self.score = 100 * correct_answers / len(self.normalized_results)
+        # original        self.score = 100 * correct_answers / len(self.normalized_results)
         if self.type == "student":
             self.score = 100 * correct_answers / len(self.normalized_results)
         elif self.type == "team":
@@ -944,9 +1008,11 @@ class ResultLine:
             # we assume each team got all the correct answers
             # and count the "extra" attempts to penalise the score
             # instead of counting only the ones right on the first attempt
-            # NOTE: this assumes 4 possible options 
+            # NOTE: this assumes 4 possible options
             total_choices = 4
-            self.score = 100 - (attempts - total_qs) * (100/total_qs) / (total_choices - 1)
+            self.score = 100 - (attempts - total_qs) * (100 / total_qs) / (
+                total_choices - 1
+            )
 
         # print('--Results for {}'.format(self.result_id))
         # print('              {}'.format(self.result))
@@ -1250,7 +1316,6 @@ class Result:
 
     def stats(self, filename):
         def aggregate_results(results):
-
             df = pd.DataFrame(
                 index=range(1, len(self.questionaire.questions) + 1),
                 columns=["a", "b", "c", "d"],
