@@ -480,7 +480,12 @@ class Questionaire:
                     ].to_string()
                     lines.append("{}:{}\\\\\n".format(name, solution))
             lines.append(page_break)
-
+        # unfortunately the page_break is not added when option --teamonly is used
+        # resulting in page/format issues. The solution is to remove one indent
+        # for the previous line, or to add an explicit check for the flag teamonly
+        # followed by a page_break
+        if teamonly:
+            lines.append(page_break)
         # TODO list solution for extra students
 
         # questionaire for each team:
